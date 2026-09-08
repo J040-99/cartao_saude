@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gerador de Cartões de Saúde — Hospital de Los Santos</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --bg: #071523;
@@ -129,9 +130,7 @@
       line-height: 1.7;
     }
 
-    .help-section ol li {
-      margin-bottom: 4px;
-    }
+    .help-section ol li { margin-bottom: 4px; }
 
     .help-section .tip {
       margin-top: 12px;
@@ -174,6 +173,8 @@
 
     .primary { background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; }
     .secondary { background: rgba(255,255,255,.08); color: white; border: 1px solid rgba(255,255,255,.1); }
+    .danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .success { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
     button:hover { transform: translateY(-1px); }
 
     .preview-wrap { position: sticky; top: 24px; }
@@ -261,15 +262,11 @@
       border-top: 1px solid rgba(125,211,252,.18);
     }
 
-    .card-bottom > div {
-      min-width: 0;
-    }
+    .card-bottom > div { min-width: 0; }
 
     .card-bottom .small-label,
     .card-bottom .value,
-    .card-bottom .footer-note {
-      overflow-wrap: anywhere;
-    }
+    .card-bottom .footer-note { overflow-wrap: anywhere; }
     .value { font-size:13px; font-weight:800; }
     .footer-note { font-size:9px; color:#82a8c2; margin-top:3px; text-transform:uppercase; letter-spacing:.12em; }
 
@@ -284,6 +281,186 @@
       border: 1px solid rgba(255,255,255,.06);
     }
 
+    /* ========== AUTH ========== */
+    .auth-bar {
+      max-width: 1180px;
+      margin: 0 auto 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .auth-bar .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #b9d4e8;
+    }
+    .auth-bar .user-info img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+    .btn-discord {
+      background: #5865F2;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 14px;
+      border: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: .2s;
+    }
+    .btn-discord:hover { background: #4752C4; transform: translateY(-1px); }
+    .btn-discord svg { width: 20px; height: 20px; }
+
+    /* ========== ADMIN PANEL ========== */
+    .admin-panel {
+      max-width: 1180px;
+      margin: 32px auto 0;
+    }
+    .admin-panel .panel { padding: 0; overflow: hidden; }
+    .admin-header {
+      padding: 22px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(56,189,248,.15);
+    }
+    .admin-header h2 { margin: 0; font-size: 18px; color: #c7e6f8; }
+    .admin-search {
+      padding: 16px 26px;
+      border-bottom: 1px solid rgba(56,189,248,.08);
+    }
+    .admin-search input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.2);
+      background: rgba(255,255,255,.05);
+      color: white;
+      font-size: 14px;
+      outline: none;
+    }
+    .admin-search input:focus { border-color: var(--cyan); }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .admin-table th {
+      padding: 12px 20px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #7da8c4;
+      border-bottom: 1px solid rgba(56,189,248,.1);
+      background: rgba(255,255,255,.02);
+    }
+    .admin-table td {
+      padding: 14px 20px;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(56,189,248,.06);
+      color: #b9d4e8;
+    }
+    .admin-table tr:hover td { background: rgba(56,189,248,.04); }
+    .admin-table .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .badge-active { background: rgba(34,197,94,.15); color: #4ade80; }
+    .badge-expired { background: rgba(239,68,68,.15); color: #f87171; }
+    .badge-zero { background: rgba(234,179,8,.15); color: #facc15; }
+    .admin-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .admin-actions button {
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 0;
+      transition: .15s;
+    }
+    .btn-edit { background: rgba(56,189,248,.15); color: #38bdf8; }
+    .btn-edit:hover { background: rgba(56,189,248,.25); }
+    .btn-delete { background: rgba(239,68,68,.15); color: #f87171; }
+    .btn-delete:hover { background: rgba(239,68,68,.25); }
+    .btn-revive { background: rgba(34,197,94,.15); color: #4ade80; }
+    .btn-revive:hover { background: rgba(34,197,94,.25); }
+    .admin-empty {
+      padding: 60px 20px;
+      text-align: center;
+      color: #5a7a94;
+      font-size: 14px;
+    }
+    .admin-stats {
+      padding: 16px 26px;
+      display: flex;
+      gap: 24px;
+      border-top: 1px solid rgba(56,189,248,.1);
+      background: rgba(255,255,255,.02);
+    }
+    .stat { text-align: center; }
+    .stat .num { font-size: 22px; font-weight: 900; color: #38bdf8; }
+    .stat .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: #5a7a94; margin-top: 2px; }
+
+    /* ========== TOAST ========== */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      z-index: 999;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: .3s ease;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-success { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .toast-error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+    /* ========== MODAL ========== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      place-items: center;
+    }
+    .modal-overlay.active { display: grid; }
+    .modal {
+      background: #0d2135;
+      border: 1px solid rgba(56,189,248,.2);
+      border-radius: 20px;
+      padding: 28px;
+      width: 90%;
+      max-width: 420px;
+    }
+    .modal h3 { margin: 0 0 16px; font-size: 16px; color: #c7e6f8; }
+    .modal p { color: #8cb8d4; font-size: 13px; line-height: 1.5; margin: 0 0 16px; }
+    .modal .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    .hidden { display: none !important; }
+
     @media (max-width: 900px) {
       .app { grid-template-columns: 1fr; }
       .preview-wrap { position: static; }
@@ -293,147 +470,42 @@
       body { padding: 18px 10px; }
       .panel { padding: 18px; border-radius: 20px; }
       .grid { grid-template-columns: 1fr; }
-
-      .card {
-        min-height: 0;
-        padding: 20px;
-        border-radius: 22px;
-      }
-
-      .card-top {
-        gap: 12px;
-      }
-
-      .brand {
-        min-width: 0;
-      }
-
-      .brand-symbol {
-        width: 42px;
-        height: 42px;
-        flex: 0 0 42px;
-        font-size: 22px;
-      }
-
-      .brand h2 {
-        font-size: 15px;
-        line-height: 1.25;
-        letter-spacing: .055em;
-      }
-
-      .brand p {
-        font-size: 9px;
-      }
-
-      .status {
-        flex: 0 0 auto;
-        font-size: 8px;
-        padding: 7px 9px;
-      }
-
-      .card-main {
-        grid-template-columns: 1fr;
-        margin-top: 34px;
-        gap: 22px;
-      }
-
-      .name {
-        font-size: 24px;
-        line-height: 1.15;
-        margin-bottom: 16px;
-        overflow-wrap: anywhere;
-      }
-
-      .idline {
-        font-size: 13px;
-      }
-
-      .plan-box {
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        align-items: center;
-        gap: 12px;
-        text-align: left;
-        padding: 14px 16px;
-      }
-
-      .plan-label {
-        margin: 0;
-      }
-
-      .plan {
-        font-size: 28px;
-        margin: 0;
-        text-align: center;
-      }
-
-      .plan-meta {
-        text-align: right;
-      }
-
-      .card-bottom {
-        grid-template-columns: 1fr 1fr;
-        gap: 16px 18px;
-        margin-top: 24px;
-        padding-top: 18px;
-      }
-
-      .card-bottom > div:last-child {
-        grid-column: 1 / -1;
-        padding-top: 4px;
-      }
-
-      .value {
-        font-size: 14px;
-      }
-
-      .footer-note {
-        font-size: 8px;
-        line-height: 1.4;
-      }
+      .card { min-height: 0; padding: 20px; border-radius: 22px; }
+      .card-top { gap: 12px; }
+      .brand { min-width: 0; }
+      .brand-symbol { width: 42px; height: 42px; flex: 0 0 42px; font-size: 22px; }
+      .brand h2 { font-size: 15px; line-height: 1.25; letter-spacing: .055em; }
+      .brand p { font-size: 9px; }
+      .status { flex: 0 0 auto; font-size: 8px; padding: 7px 9px; }
+      .card-main { grid-template-columns: 1fr; margin-top: 34px; gap: 22px; }
+      .name { font-size: 24px; line-height: 1.15; margin-bottom: 16px; overflow-wrap: anywhere; }
+      .idline { font-size: 13px; }
+      .plan-box { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; text-align: left; padding: 14px 16px; }
+      .plan-label { margin: 0; }
+      .plan { font-size: 28px; margin: 0; text-align: center; }
+      .plan-meta { text-align: right; }
+      .card-bottom { grid-template-columns: 1fr 1fr; gap: 16px 18px; margin-top: 24px; padding-top: 18px; }
+      .card-bottom > div:last-child { grid-column: 1 / -1; padding-top: 4px; }
+      .value { font-size: 14px; }
+      .footer-note { font-size: 8px; line-height: 1.4; }
     }
 
     @media (max-width: 410px) {
-      .card-top {
-        align-items: flex-start;
-      }
-
-      .status {
-        display: none;
-      }
-
-      .plan-box {
-        grid-template-columns: 1fr;
-        text-align: center;
-      }
-
-      .plan-meta {
-        text-align: center;
-      }
-
-      .card-bottom {
-        grid-template-columns: 1fr;
-      }
-
-      .card-bottom > div:last-child {
-        grid-column: auto;
-      }
+      .card-top { align-items: flex-start; }
+      .status { display: none; }
+      .plan-box { grid-template-columns: 1fr; text-align: center; }
+      .plan-meta { text-align: center; }
+      .card-bottom { grid-template-columns: 1fr; }
+      .card-bottom > div:last-child { grid-column: auto; }
     }
 
     @media print {
       body { background: white; padding: 0; }
-      .form-panel, .preview-title, .rules { display:none !important; }
+      .form-panel, .preview-title, .rules, .auth-bar, .admin-panel, .help-section, .toast, .modal-overlay { display:none !important; }
       .app { display:block; max-width:none; }
       .panel { box-shadow:none; border:0; padding:0; background:white; }
       .preview-wrap { position:static; }
-      .card {
-        width: 85.6mm;
-        height: 53.98mm;
-        min-height: 0;
-        border-radius: 4mm;
-        box-shadow: none;
-        padding: 4.5mm;
-      }
+      .card { width: 85.6mm; height: 53.98mm; min-height: 0; border-radius: 4mm; box-shadow: none; padding: 4.5mm; }
       .brand-symbol { width: 9mm; height: 9mm; border-radius: 2.5mm; font-size: 16px; }
       .brand h2 { font-size: 10px; }
       .brand p { font-size: 6px; }
@@ -453,7 +525,32 @@
   </style>
 </head>
 <body>
-  <div class="app">
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- MODAL CONFIRMAR APAGAR -->
+  <div class="modal-overlay" id="modalDelete">
+    <div class="modal">
+      <h3>⚠️ Apagar cartão?</h3>
+      <p>Esta acção não pode ser desfeita. O cartão será removido permanentemente da base de dados.</p>
+      <div class="modal-actions">
+        <button class="secondary" onclick="fecharModal()">Cancelar</button>
+        <button class="danger" id="btnConfirmDelete">Apagar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTH BAR -->
+  <div class="auth-bar" id="authBar">
+    <div></div>
+    <div id="authArea">
+      <!-- JS preenche -->
+    </div>
+  </div>
+
+  <!-- APP PRINCIPAL -->
+  <div class="app hidden" id="mainApp">
     <section class="panel form-panel">
       <div class="title">
         <div class="logo">✚</div>
@@ -466,31 +563,19 @@
       <div class="grid">
         <div class="full">
           <label>Nome do titular</label>
-          <input id="nome" type="text" value="Naomi Cruz" placeholder="Nome completo" />
-          <div class="field-help">
-            <span class="icon">?</span>
-            <span>Nome completo da pessoa que vai usar o cartão</span>
-          </div>
+          <input id="nome" type="text" placeholder="Nome completo" />
+          <div class="field-help"><span class="icon">?</span><span>Nome completo da pessoa que vai usar o cartão</span></div>
         </div>
-
         <div>
           <label>ID / Passaporte</label>
-          <input id="documento" type="text" value="LS-1024" placeholder="Ex.: LS-1024" />
-          <div class="field-help">
-            <span class="icon">?</span>
-            <span>Número do documento de identificação</span>
-          </div>
+          <input id="documento" type="text" placeholder="Ex.: LS-1024" />
+          <div class="field-help"><span class="icon">?</span><span>Número do documento de identificação</span></div>
         </div>
-
         <div>
           <label>N.º do cartão</label>
-          <input id="numero" type="text" value="HLS-00001" />
-          <div class="field-help">
-            <span class="icon">?</span>
-            <span>Número único do cartão (gerado automaticamente)</span>
-          </div>
+          <input id="numero" type="text" />
+          <div class="field-help"><span class="icon">?</span><span>Número único do cartão (gerado automaticamente)</span></div>
         </div>
-
         <div>
           <label>Plano</label>
           <select id="plano">
@@ -500,57 +585,28 @@
             <option value="120">Plano 120 — 120 revives/mês (20% desconto)</option>
             <option value="150">Plano 150 — 150 revives/mês (25% desconto)</option>
           </select>
-          <div class="field-help">
-            <span class="icon">?</span>
-            <span>Quanto maior o plano, mais revives e desconto</span>
-          </div>
+          <div class="field-help"><span class="icon">?</span><span>Quanto maior o plano, mais revives e desconto</span></div>
         </div>
-
         <div>
           <label>Revives restantes</label>
           <input id="restantes" type="number" value="100" min="0" />
-          <div class="field-help">
-            <span class="icon">?</span>
-            <span>Quantas vezes ainda pode usar o revive</span>
-          </div>
+          <div class="field-help"><span class="icon">?</span><span>Quantas vezes ainda pode usar o revive</span></div>
         </div>
-
         <div>
           <label>Data de início</label>
           <input id="inicio" type="date" />
-          <div class="field-help">
-            <span class="icon">?</span>
-            <span>Data em que o cartão fica ativo</span>
-          </div>
+          <div class="field-help"><span class="icon">?</span><span>Data em que o cartão fica ativo</span></div>
         </div>
-
         <div>
           <label>Validade</label>
           <input id="validade" type="date" />
-          <div class="field-help">
-            <span class="icon">?</span>
-            <span>Data em que o cartão expira (preenche automaticamente)</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="help-section">
-        <h3>📋 Como usar</h3>
-        <ol>
-          <li>Preencha o <strong>nome completo</strong> do titular</li>
-          <li>Indique o <strong>número do documento</strong> (ID ou passaporte)</li>
-          <li>Escolha o <strong>plano de saúde</strong> pretendido</li>
-          <li>Se pretender alterar os revives restantes, faça-o manualmente</li>
-          <li>Escolha a <strong>data de início</strong> (a validade calcula-se automaticamente)</li>
-          <li>Clique em <strong>"Imprimir / Guardar PDF"</strong> para gerar o cartão</li>
-        </ol>
-        <div class="tip">
-          💡 <strong>Dica:</strong> Ao mudar a data de início, a validade atualiza-se automaticamente para 30 dias depois. Pode sempre clicar em "Novo cartão" para recomeçar.
+          <div class="field-help"><span class="icon">?</span><span>Data em que o cartão expira (preenche automaticamente)</span></div>
         </div>
       </div>
 
       <div class="actions">
-        <button class="primary" onclick="window.print()">Imprimir / Guardar PDF</button>
+        <button class="primary" onclick="guardarCartao()">💾 Guardar na Base de Dados</button>
+        <button class="secondary" onclick="window.print()">🖨️ Imprimir / PDF</button>
         <button class="secondary" onclick="novoCartao()">Novo cartão</button>
       </div>
     </section>
@@ -568,13 +624,12 @@
           </div>
           <div class="status">Ativo</div>
         </div>
-
         <div class="card-main">
           <div>
             <div class="small-label">Titular</div>
-            <div class="name" id="outNome">NAOMI CRUZ</div>
+            <div class="name" id="outNome">—</div>
             <div class="small-label">ID / Passaporte</div>
-            <div class="idline" id="outDocumento">LS-1024</div>
+            <div class="idline" id="outDocumento">—</div>
           </div>
           <div class="plan-box">
             <div class="plan-label">Plano ativo</div>
@@ -582,16 +637,15 @@
             <div class="plan-meta" id="outMeta">100 revives/mês<br>15% desconto</div>
           </div>
         </div>
-
         <div class="card-bottom">
           <div>
             <div class="small-label">N.º do cartão</div>
-            <div class="value" id="outNumero">HLS-00001</div>
+            <div class="value" id="outNumero">—</div>
             <div class="footer-note">Pessoal e intransmissível</div>
           </div>
           <div>
             <div class="small-label">Revives restantes</div>
-            <div class="value" id="outRestantes">100</div>
+            <div class="value" id="outRestantes">—</div>
             <div class="footer-note">Taxa transporte: 10.000</div>
           </div>
           <div>
@@ -601,7 +655,6 @@
           </div>
         </div>
       </div>
-
       <div class="rules">
         <strong>Regras importantes:</strong><br><br>
         ✅ O cartão é pessoal e intransmissível — só pode ser usado pelo titular<br>
@@ -612,15 +665,131 @@
     </section>
   </div>
 
+  <!-- ADMIN PANEL -->
+  <div class="admin-panel hidden" id="adminPanel">
+    <div class="panel">
+      <div class="admin-header">
+        <h2>📋 Gestão de Cartões</h2>
+        <button class="primary" onclick="novoCartao(); document.getElementById('adminPanel').classList.add('hidden'); document.getElementById('mainApp').classList.remove('hidden');">+ Novo Cartão</button>
+      </div>
+      <div class="admin-search">
+        <input type="text" id="searchInput" placeholder="🔍 Pesquisar por nome, número ou documento..." oninput="filtrarCartoes()" />
+      </div>
+      <div id="adminTableWrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Titular</th>
+              <th>Documento</th>
+              <th>N.º Cartão</th>
+              <th>Plano</th>
+              <th>Revives</th>
+              <th>Validade</th>
+              <th>Estado</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="adminTableBody">
+          </tbody>
+        </table>
+        <div class="admin-empty" id="adminEmpty">Nenhum cartão encontrado.</div>
+      </div>
+      <div class="admin-stats" id="adminStats">
+        <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">Total</div></div>
+        <div class="stat"><div class="num" id="statAtivos">0</div><div class="lbl">Ativos</div></div>
+        <div class="stat"><div class="num" id="statExpirados">0</div><div class="lbl">Expirados</div></div>
+        <div class="stat"><div class="num" id="statSemRevives">0</div><div class="lbl">Sem Revives</div></div>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // ============================================================
+    // 🔧 CONFIGURAÇÃO — Preencher com os vossos dados do Supabase
+    // ============================================================
+    const SUPABASE_URL = 'https://pmnwaegivldxxpoatdbv.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtbndhZWdpdmxkeHhwb2F0ZGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4NTUwODMsImV4cCI6MjEwNDQzMTA4M30.dN4O_0Z4EuzBcq54Ts7xMbd6F5lo81Ky0RmFf_o2dwU';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+    let cartoes = [];
+    let editingId = null;
+    let deleteId = null;
+
+    // ============================================================
+    // PLANOS
+    // ============================================================
     const planos = {
-      50: { revives: 50, desconto: 5, preco: '1.900.000' },
-      75: { revives: 75, desconto: 10, preco: '2.700.000' },
+      50:  { revives: 50,  desconto: 5,  preco: '1.900.000' },
+      75:  { revives: 75,  desconto: 10, preco: '2.700.000' },
       100: { revives: 100, desconto: 15, preco: '3.400.000' },
       120: { revives: 120, desconto: 20, preco: '3.840.000' },
       150: { revives: 150, desconto: 25, preco: '4.500.000' }
     };
 
+    // ============================================================
+    // TOAST
+    // ============================================================
+    function toast(msg, tipo = 'success') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = `toast toast-${tipo} show`;
+      setTimeout(() => el.classList.remove('show'), 3000);
+    }
+
+    // ============================================================
+    // MODAL
+    // ============================================================
+    function fecharModal() {
+      document.getElementById('modalDelete').classList.remove('active');
+      deleteId = null;
+    }
+
+    // ============================================================
+    // AUTH — Login com Discord
+    // ============================================================
+    async function loginDiscord() {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'discord',
+        options: {
+          redirectTo: window.location.origin + window.location.pathname
+        }
+      });
+      if (error) toast('Erro ao fazer login: ' + error.message, 'error');
+    }
+
+    async function logout() {
+      await supabase.auth.signOut();
+      currentUser = null;
+      renderAuth();
+      document.getElementById('mainApp').classList.add('hidden');
+      document.getElementById('adminPanel').classList.add('hidden');
+    }
+
+    function renderAuth() {
+      const area = document.getElementById('authArea');
+      if (!currentUser) {
+        area.innerHTML = `
+          <button class="btn-discord" onclick="loginDiscord()">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>
+            Entrar com Discord
+          </button>`;
+      } else {
+        const avatar = currentUser.user_metadata?.avatar_url || '';
+        const name = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email;
+        area.innerHTML = `
+          <div class="user-info">
+            ${avatar ? `<img src="${avatar}" alt="avatar" />` : ''}
+            <span>${name}</span>
+            <button class="secondary" onclick="logout()" style="padding:8px 12px;font-size:12px;">Sair</button>
+          </div>`;
+      }
+    }
+
+    // ============================================================
+    // FORMULÁRIO — Atualizar preview
+    // ============================================================
     const els = ['nome','documento','numero','plano','restantes','inicio','validade'];
     els.forEach(id => document.getElementById(id).addEventListener('input', atualizar));
     document.getElementById('plano').addEventListener('change', () => {
@@ -628,7 +797,6 @@
       document.getElementById('restantes').value = p.revives;
       atualizar();
     });
-
     document.getElementById('inicio').addEventListener('change', () => {
       const inicio = document.getElementById('inicio').value;
       if (inicio) {
@@ -641,8 +809,7 @@
 
     function formatarData(v) {
       if (!v) return '—';
-      const d = new Date(v + 'T00:00:00');
-      return d.toLocaleDateString('pt-PT');
+      return new Date(v + 'T00:00:00').toLocaleDateString('pt-PT');
     }
 
     function atualizar() {
@@ -658,11 +825,12 @@
     }
 
     function novoCartao() {
+      editingId = null;
       document.getElementById('nome').value = '';
       document.getElementById('documento').value = '';
       document.getElementById('numero').value = gerarNumero();
-      document.getElementById('plano').value = '50';
-      document.getElementById('restantes').value = 50;
+      document.getElementById('plano').value = '100';
+      document.getElementById('restantes').value = 100;
       const hoje = new Date();
       document.getElementById('inicio').value = hoje.toISOString().slice(0,10);
       const fim = new Date(hoje);
@@ -676,13 +844,179 @@
       return 'HLS-' + String(n).padStart(5, '0');
     }
 
-    (function init(){
-      const hoje = new Date();
-      document.getElementById('inicio').value = hoje.toISOString().slice(0,10);
-      const fim = new Date(hoje);
-      fim.setDate(fim.getDate() + 30);
-      document.getElementById('validade').value = fim.toISOString().slice(0,10);
+    // ============================================================
+    // SUPABASE — CRUD
+    // ============================================================
+    async function carregarCartoes() {
+      const { data, error } = await supabase
+        .from('cartoes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) { toast('Erro ao carregar: ' + error.message, 'error'); return; }
+      cartoes = data || [];
+      renderAdminTable();
+    }
+
+    async function guardarCartao() {
+      const cartao = {
+        nome: document.getElementById('nome').value.trim(),
+        documento: document.getElementById('documento').value.trim(),
+        numero: document.getElementById('numero').value.trim(),
+        plano: parseInt(document.getElementById('plano').value),
+        revives: parseInt(document.getElementById('restantes').value),
+        inicio: document.getElementById('inicio').value,
+        validade: document.getElementById('validade').value,
+        criador_id: currentUser?.id
+      };
+
+      if (!cartao.nome || !cartao.documento) {
+        toast('Preencha o nome e o documento!', 'error');
+        return;
+      }
+
+      if (editingId) {
+        const { error } = await supabase.from('cartoes').update(cartao).eq('id', editingId);
+        if (error) { toast('Erro ao atualizar: ' + error.message, 'error'); return; }
+        toast('Cartão atualizado com sucesso!');
+        editingId = null;
+      } else {
+        const { error } = await supabase.from('cartoes').insert(cartao);
+        if (error) { toast('Erro ao guardar: ' + error.message, 'error'); return; }
+        toast('Cartão guardado com sucesso!');
+      }
+
+      await carregarCartoes();
+    }
+
+    async function apagarCartao(id) {
+      deleteId = id;
+      document.getElementById('modalDelete').classList.add('active');
+      document.getElementById('btnConfirmDelete').onclick = async () => {
+        const { error } = await supabase.from('cartoes').delete().eq('id', deleteId);
+        if (error) { toast('Erro ao apagar: ' + error.message, 'error'); return; }
+        toast('Cartão apagado.');
+        fecharModal();
+        await carregarCartoes();
+      };
+    }
+
+    function editarCartao(id) {
+      const c = cartoes.find(x => x.id === id);
+      if (!c) return;
+      editingId = id;
+      document.getElementById('nome').value = c.nome;
+      document.getElementById('documento').value = c.documento;
+      document.getElementById('numero').value = c.numero;
+      document.getElementById('plano').value = c.plano;
+      document.getElementById('restantes').value = c.revives;
+      document.getElementById('inicio').value = c.inicio;
+      document.getElementById('validade').value = c.validade;
       atualizar();
+      document.getElementById('adminPanel').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function revalidarCartao(id) {
+      const c = cartoes.find(x => x.id === id);
+      if (!c) return;
+      const novaValidade = new Date();
+      novaValidade.setDate(novaValidade.getDate() + 30);
+      const { error } = await supabase.from('cartoes').update({ validade: novaValidade.toISOString().slice(0,10) }).eq('id', id);
+      if (error) { toast('Erro ao revalidar: ' + error.message, 'error'); return; }
+      toast('Cartão revalidado por 30 dias!');
+      await carregarCartoes();
+    }
+
+    // ============================================================
+    // ADMIN — Renderizar tabela
+    // ============================================================
+    function renderAdminTable() {
+      const tbody = document.getElementById('adminTableBody');
+      const empty = document.getElementById('adminEmpty');
+      const hoje = new Date().toISOString().slice(0,10);
+      const termo = (document.getElementById('searchInput')?.value || '').toLowerCase();
+
+      let filtrados = cartoes;
+      if (termo) {
+        filtrados = cartoes.filter(c =>
+          c.nome.toLowerCase().includes(termo) ||
+          c.numero.toLowerCase().includes(termo) ||
+          c.documento.toLowerCase().includes(termo)
+        );
+      }
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = '';
+        empty.classList.remove('hidden');
+      } else {
+        empty.classList.add('hidden');
+        tbody.innerHTML = filtrados.map(c => {
+          let estado = '<span class="badge badge-active">Ativo</span>';
+          if (c.validade < hoje) estado = '<span class="badge badge-expired">Expirado</span>';
+          else if (c.revives <= 0) estado = '<span class="badge badge-zero">Sem Revives</span>';
+
+          return `<tr>
+            <td><strong>${c.nome}</strong></td>
+            <td>${c.documento}</td>
+            <td>${c.numero}</td>
+            <td>Plano ${c.plano}</td>
+            <td>${c.revives}</td>
+            <td>${formatarData(c.validade)}</td>
+            <td>${estado}</td>
+            <td>
+              <div class="admin-actions">
+                <button class="btn-edit" onclick="editarCartao('${c.id}')">✏️</button>
+                <button class="btn-revive" onclick="revalidarCartao('${c.id}')">🔄</button>
+                <button class="btn-delete" onclick="apagarCartao('${c.id}')">🗑️</button>
+              </div>
+            </td>
+          </tr>`;
+        }).join('');
+      }
+
+      // Stats
+      const total = cartoes.length;
+      const ativos = cartoes.filter(c => c.validade >= hoje && c.revives > 0).length;
+      const expirados = cartoes.filter(c => c.validade < hoje).length;
+      const semRevives = cartoes.filter(c => c.revives <= 0 && c.validade >= hoje).length;
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statAtivos').textContent = ativos;
+      document.getElementById('statExpirados').textContent = expirados;
+      document.getElementById('statSemRevives').textContent = semRevives;
+    }
+
+    function filtrarCartoes() { renderAdminTable(); }
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    (async function init() {
+      renderAuth();
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        currentUser = session.user;
+        renderAuth();
+        document.getElementById('mainApp').classList.remove('hidden');
+        document.getElementById('adminPanel').classList.remove('hidden');
+        novoCartao();
+        await carregarCartoes();
+      }
+
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user) {
+          currentUser = session.user;
+          renderAuth();
+          document.getElementById('mainApp').classList.remove('hidden');
+          document.getElementById('adminPanel').classList.remove('hidden');
+          novoCartao();
+          await carregarCartoes();
+        } else {
+          currentUser = null;
+          renderAuth();
+        }
+      });
     })();
   </script>
 </body>
