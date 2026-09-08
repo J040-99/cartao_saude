@@ -909,9 +909,9 @@
       atualizar();
     }
 
-    async function obterOuCriarPessoaId(userId) {
-      // Verificar se já tem um número de pessoa
-      const { data } = await sb.from('perfis').select('pessoa_numero').eq('user_id', userId).limit(1);
+    async function obterOuCriarPessoaId(documento) {
+      // Verificar se já tem um número de pessoa para este documento
+      const { data } = await sb.from('perfis').select('pessoa_numero').eq('documento', documento).limit(1);
       if (data && data.length > 0) return data[0].pessoa_numero;
 
       // Criar novo número sequencial
@@ -925,9 +925,11 @@
 
     async function gerarNumero() {
       const plano = document.getElementById('plano').value;
-      const pessoaNumero = await obterOuCriarPessoaId(currentUser.id);
+      const documento = document.getElementById('documento').value.trim();
+      if (!documento) return '??-??-??';
+      const pessoaNumero = await obterOuCriarPessoaId(documento);
 
-      // Buscar o maior sequencial GLOBAL (sem重复, mesmo entre planos diferentes)
+      // Buscar o maior sequencial GLOBAL
       const { data } = await sb.from('cartoes').select('numero').limit(500);
       let maxSeq = 0;
       if (data) {
