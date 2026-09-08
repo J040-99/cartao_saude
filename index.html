@@ -613,7 +613,9 @@
   <div class="app hidden" id="mainApp">
     <section class="panel form-panel">
       <div class="title">
-        <div class="logo">HLS</div>
+        <div class="logo">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
         <div>
           <h1>Gerador de Cartões de Saúde</h1>
           <p class="subtitle">Hospital de Los Santos — emissão de cartões dos planos de saúde.</p>
@@ -675,7 +677,9 @@
       <div class="card" id="card">
         <div class="card-top">
           <div class="brand">
-            <div class="brand-symbol">HLS</div>
+            <div class="brand-symbol">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
             <div>
               <h2>HOSPITAL DE LOS SANTOS</h2>
               <p>Cartão de Saúde</p>
@@ -716,10 +720,10 @@
       </div>
       <div class="rules">
         <strong>Regras importantes:</strong><br><br>
-        [•] O cartão é pessoal e intransmissível — só pode ser usado pelo titular<br>
-        [•] O transporte da vítima NÃO está incluído no plano — taxa de 10.000<br>
-        [•] O Hospital pode confirmar a validade e revives restantes antes do atendimento<br>
-        [•] Para revalidar o cartão, contacte o Hospital de Los Santos
+        <span style="display:flex; align-items:center; gap:6px; margin-bottom:4px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span>O cartão é pessoal e intransmissível — só pode ser usado pelo titular</span></span><br>
+        <span style="display:flex; align-items:center; gap:6px; margin-bottom:4px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span>O transporte da vítima NÃO está incluído no plano — taxa de 10.000</span></span><br>
+        <span style="display:flex; align-items:center; gap:6px; margin-bottom:4px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span>O Hospital pode confirmar a validade e revives restantes antes do atendimento</span></span><br>
+        <span style="display:flex; align-items:center; gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span>Para revalidar o cartão, contacte o Hospital de Los Santos</span></span>
       </div>
     </section>
   </div>
@@ -837,7 +841,9 @@
         document.getElementById('authBar').classList.remove('logged-in');
         area.innerHTML = `
           <div class="login-screen">
-            <div class="login-logo">HLS</div>
+            <div class="login-logo">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
             <h1>Hospital de Los Santos</h1>
             <p>Gerador de Cartões de Saúde</p>
             <button class="btn-discord" onclick="loginDiscord()">
