@@ -909,7 +909,7 @@
       document.getElementById('nome').value = '';
       document.getElementById('documento').value = '';
       document.getElementById('numero').value = await gerarNumero();
-      document.getElementById('plano').value = '100';
+      document.getElementById('plano').value = '03';
       document.getElementById('restantes').value = 100;
       const h = new Date(); document.getElementById('inicio').value = h.toISOString().slice(0,10);
       const f = new Date(h); f.setDate(f.getDate() + 30); document.getElementById('validade').value = f.toISOString().slice(0,10);
@@ -926,7 +926,7 @@
       let proximo = 1;
       if (todos && todos.length > 0) proximo = todos[0].pessoa_numero + 1;
 
-      await sb.from('perfis').insert({ user_id: userId, pessoa_numero: proximo });
+      await sb.from('perfis').insert({ documento: documento, pessoa_numero: proximo });
       return proximo;
     }
 
