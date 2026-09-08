@@ -869,8 +869,9 @@
     // ============================================================
     const formEls = ['nome','documento','numero','plano','restantes','inicio','validade'];
     formEls.forEach(id => document.getElementById(id).addEventListener('input', atualizar));
-    document.getElementById('plano').addEventListener('change', () => {
+    document.getElementById('plano').addEventListener('change', async () => {
       document.getElementById('restantes').value = planos[document.getElementById('plano').value].revives;
+      if (!editingId) document.getElementById('numero').value = await gerarNumero();
       atualizar();
     });
     document.getElementById('inicio').addEventListener('change', () => {
