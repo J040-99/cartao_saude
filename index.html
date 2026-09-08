@@ -414,6 +414,7 @@
       text-transform: uppercase;
       letter-spacing: .06em;
     }
+    .admin-table td { vertical-align: middle; }
     .badge-active { background: rgba(34,197,94,.15); color: #4ade80; }
     .badge-expired { background: rgba(239,68,68,.15); color: #f87171; }
     .badge-zero { background: rgba(234,179,8,.15); color: #facc15; }
@@ -569,10 +570,34 @@
   <div class="modal-overlay" id="modalDelete">
     <div class="modal">
       <h3>⚠️ Apagar cartão?</h3>
-      <p>Esta acção não pode ser desfeita. O cartão será removido permanentemente da base de dados.</p>
+      <p>Esta acção não pode ser desfeita. O cartão e todo o histórico de revives serão removidos permanentemente.</p>
       <div class="modal-actions">
-        <button class="secondary" onclick="fecharModal()">Cancelar</button>
+        <button class="secondary" onclick="fecharModal('modalDelete')">Cancelar</button>
         <button class="danger" id="btnConfirmDelete">Apagar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL REGISTAR REVIVE -->
+  <div class="modal-overlay" id="modalRevive">
+    <div class="modal">
+      <h3>💀 Registar Revive</h3>
+      <div id="reviveInfo" style="margin-bottom:16px; font-size:13px; color:#b9d4e8; line-height:1.6;"></div>
+      <p style="font-size:12px; color:#7da8c4;">Isto vai descontar 1 revive do cartão e registar quem o efetuou.</p>
+      <div class="modal-actions">
+        <button class="secondary" onclick="fecharModal('modalRevive')">Cancelar</button>
+        <button class="danger" onclick="confirmarRevive()">💀 Confirmar Revive</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL HISTÓRICO REVIVES -->
+  <div class="modal-overlay" id="modalHistorico">
+    <div class="modal" style="max-width:500px; max-height:80vh; overflow-y:auto;">
+      <h3 id="historicoTitle">Histórico de Revives</h3>
+      <div id="historicoContent"></div>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="secondary" onclick="fecharModal('modalHistorico')">Fechar</button>
       </div>
     </div>
   </div>
@@ -740,7 +765,7 @@
 
   <script>
     // ============================================================
-    // 🔧 CONFIGURAÇÃO — Preencher com os vossos dados do Supabase
+    // CONFIGURAÇÃO
     // ============================================================
     const SUPABASE_URL = 'https://pmnwaegivldxxpoatdbv.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtbndhZWdpdmxkeHhwb2F0ZGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4NTUwODMsImV4cCI6MjEwNDQzMTA4M30.dN4O_0Z4EuzBcq54Ts7xMbd6F5lo81Ky0RmFf_o2dwU';
@@ -749,12 +774,11 @@
 
     let currentUser = null;
     let cartoes = [];
+    let revivesLog = [];
     let editingId = null;
     let deleteId = null;
+    let reviveCartaoId = null;
 
-    // ============================================================
-    // PLANOS
-    // ============================================================
     const planos = {
       50:  { revives: 50,  desconto: 5,  preco: '1.900.000' },
       75:  { revives: 75,  desconto: 10, preco: '2.700.000' },
@@ -774,22 +798,29 @@
     }
 
     // ============================================================
-    // MODAL
+    // MODAIS
     // ============================================================
-    function fecharModal() {
-      document.getElementById('modalDelete').classList.remove('active');
-      deleteId = null;
+    function fecharModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function getUserName() {
+      if (!currentUser) return 'Desconhecido';
+      return currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email || 'Desconhecido';
+    }
+
+    function getUserAvatar() {
+      if (!currentUser) return '';
+      return currentUser.user_metadata?.avatar_url || '';
     }
 
     // ============================================================
-    // AUTH — Login com Discord
+    // AUTH — Discord
     // ============================================================
     async function loginDiscord() {
       const { error } = await sb.auth.signInWithOAuth({
         provider: 'discord',
-        options: {
-          redirectTo: window.location.origin + window.location.pathname
-        }
+        options: { redirectTo: window.location.origin + window.location.pathname }
       });
       if (error) toast('Erro ao fazer login: ' + error.message, 'error');
     }
@@ -817,11 +848,12 @@
             </button>
           </div>`;
       } else {
-        const avatar = currentUser.user_metadata?.avatar_url || '';
-        const name = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email;
+        document.getElementById('authBar').classList.add('logged-in');
+        const avatar = getUserAvatar();
+        const name = getUserName();
         area.innerHTML = `
           <div class="user-info">
-            ${avatar ? `<img src="${avatar}" alt="avatar" />` : ''}
+            ${avatar ? `<img src="${avatar}" alt="" />` : ''}
             <span>${name}</span>
             <button class="secondary" onclick="logout()" style="padding:8px 12px;font-size:12px;">Sair</button>
           </div>`;
@@ -829,29 +861,24 @@
     }
 
     // ============================================================
-    // FORMULÁRIO — Atualizar preview
+    // FORMULÁRIO
     // ============================================================
-    const els = ['nome','documento','numero','plano','restantes','inicio','validade'];
-    els.forEach(id => document.getElementById(id).addEventListener('input', atualizar));
+    const formEls = ['nome','documento','numero','plano','restantes','inicio','validade'];
+    formEls.forEach(id => document.getElementById(id).addEventListener('input', atualizar));
     document.getElementById('plano').addEventListener('change', () => {
-      const p = planos[document.getElementById('plano').value];
-      document.getElementById('restantes').value = p.revives;
+      document.getElementById('restantes').value = planos[document.getElementById('plano').value].revives;
       atualizar();
     });
     document.getElementById('inicio').addEventListener('change', () => {
-      const inicio = document.getElementById('inicio').value;
-      if (inicio) {
-        const d = new Date(inicio + 'T00:00:00');
-        d.setDate(d.getDate() + 30);
+      const v = document.getElementById('inicio').value;
+      if (v) {
+        const d = new Date(v + 'T00:00:00'); d.setDate(d.getDate() + 30);
         document.getElementById('validade').value = d.toISOString().slice(0,10);
         atualizar();
       }
     });
 
-    function formatarData(v) {
-      if (!v) return '—';
-      return new Date(v + 'T00:00:00').toLocaleDateString('pt-PT');
-    }
+    function formatarData(v) { return v ? new Date(v + 'T00:00:00').toLocaleDateString('pt-PT') : '—'; }
 
     function atualizar() {
       const plano = document.getElementById('plano').value;
@@ -872,30 +899,27 @@
       document.getElementById('numero').value = gerarNumero();
       document.getElementById('plano').value = '100';
       document.getElementById('restantes').value = 100;
-      const hoje = new Date();
-      document.getElementById('inicio').value = hoje.toISOString().slice(0,10);
-      const fim = new Date(hoje);
-      fim.setDate(fim.getDate() + 30);
-      document.getElementById('validade').value = fim.toISOString().slice(0,10);
+      const h = new Date(); document.getElementById('inicio').value = h.toISOString().slice(0,10);
+      const f = new Date(h); f.setDate(f.getDate() + 30); document.getElementById('validade').value = f.toISOString().slice(0,10);
       atualizar();
     }
 
-    function gerarNumero() {
-      const n = Math.floor(Math.random() * 99999) + 1;
-      return 'HLS-' + String(n).padStart(5, '0');
-    }
+    function gerarNumero() { return 'HLS-' + String(Math.floor(Math.random() * 99999) + 1).padStart(5, '0'); }
 
     // ============================================================
-    // SUPABASE — CRUD
+    // SUPABASE — CRUD CARTÕES
     // ============================================================
     async function carregarCartoes() {
-      const { data, error } = await sb
-        .from('cartoes')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await sb.from('cartoes').select('*').order('created_at', { ascending: false });
       if (error) { toast('Erro ao carregar: ' + error.message, 'error'); return; }
       cartoes = data || [];
+      await carregarRevives();
       renderAdminTable();
+    }
+
+    async function carregarRevives() {
+      const { data, error } = await sb.from('revives').select('*').order('created_at', { ascending: false });
+      if (!error) revivesLog = data || [];
     }
 
     async function guardarCartao() {
@@ -905,27 +929,28 @@
         numero: document.getElementById('numero').value.trim(),
         plano: parseInt(document.getElementById('plano').value),
         revives: parseInt(document.getElementById('restantes').value),
+        revives_usados: 0,
         inicio: document.getElementById('inicio').value,
         validade: document.getElementById('validade').value,
-        criador_id: currentUser?.id
+        criador_id: currentUser?.id,
+        criador_nome: getUserName(),
+        criador_avatar: getUserAvatar()
       };
-
-      if (!cartao.nome || !cartao.documento) {
-        toast('Preencha o nome e o documento!', 'error');
-        return;
-      }
+      if (!cartao.nome || !cartao.documento) { toast('Preencha nome e documento!', 'error'); return; }
 
       if (editingId) {
+        delete cartao.criador_id;
+        delete cartao.criador_nome;
+        delete cartao.criador_avatar;
         const { error } = await sb.from('cartoes').update(cartao).eq('id', editingId);
-        if (error) { toast('Erro ao atualizar: ' + error.message, 'error'); return; }
-        toast('Cartão atualizado com sucesso!');
+        if (error) { toast('Erro: ' + error.message, 'error'); return; }
+        toast('Cartão atualizado!');
         editingId = null;
       } else {
         const { error } = await sb.from('cartoes').insert(cartao);
-        if (error) { toast('Erro ao guardar: ' + error.message, 'error'); return; }
-        toast('Cartão guardado com sucesso!');
+        if (error) { toast('Erro: ' + error.message, 'error'); return; }
+        toast('Cartão guardado!');
       }
-
       await carregarCartoes();
     }
 
@@ -933,10 +958,11 @@
       deleteId = id;
       document.getElementById('modalDelete').classList.add('active');
       document.getElementById('btnConfirmDelete').onclick = async () => {
+        await sb.from('revives').delete().eq('cartao_id', deleteId);
         const { error } = await sb.from('cartoes').delete().eq('id', deleteId);
-        if (error) { toast('Erro ao apagar: ' + error.message, 'error'); return; }
+        if (error) { toast('Erro: ' + error.message, 'error'); return; }
         toast('Cartão apagado.');
-        fecharModal();
+        fecharModal('modalDelete');
         await carregarCartoes();
       };
     }
@@ -959,18 +985,86 @@
     }
 
     async function revalidarCartao(id) {
-      const c = cartoes.find(x => x.id === id);
-      if (!c) return;
-      const novaValidade = new Date();
-      novaValidade.setDate(novaValidade.getDate() + 30);
+      const novaValidade = new Date(); novaValidade.setDate(novaValidade.getDate() + 30);
       const { error } = await sb.from('cartoes').update({ validade: novaValidade.toISOString().slice(0,10) }).eq('id', id);
-      if (error) { toast('Erro ao revalidar: ' + error.message, 'error'); return; }
+      if (error) { toast('Erro: ' + error.message, 'error'); return; }
       toast('Cartão revalidado por 30 dias!');
       await carregarCartoes();
     }
 
     // ============================================================
-    // ADMIN — Renderizar tabela
+    // REVIVE — Registar
+    // ============================================================
+    function abrirReviveModal(cartaoId) {
+      reviveCartaoId = cartaoId;
+      const c = cartoes.find(x => x.id === cartaoId);
+      if (!c) return;
+      document.getElementById('reviveInfo').innerHTML = `
+        <strong>${c.nome}</strong> — ${c.numero}<br>
+        Revives restantes: <strong>${c.revives}</strong><br>
+        Revives já dados: <strong>${c.revives_usados || 0}</strong>`;
+      document.getElementById('modalRevive').classList.add('active');
+    }
+
+    async function confirmarRevive() {
+      if (!reviveCartaoId || !currentUser) return;
+      const c = cartoes.find(x => x.id === reviveCartaoId);
+      if (!c) return;
+      if (c.revives <= 0) { toast('Sem revives disponíveis!', 'error'); fecharModal('modalRevive'); return; }
+
+      // Registar no log
+      const { error: logErr } = await sb.from('revives').insert({
+        cartao_id: reviveCartaoId,
+        cartao_nome: c.nome,
+        cartao_numero: c.numero,
+        admin_id: currentUser.id,
+        admin_nome: getUserName(),
+        admin_avatar: getUserAvatar()
+      });
+      if (logErr) { toast('Erro ao registar: ' + logErr.message, 'error'); return; }
+
+      // Decrementar revives
+      const { error } = await sb.from('cartoes').update({
+        revives: c.revives - 1,
+        revives_usados: (c.revives_usados || 0) + 1
+      }).eq('id', reviveCartaoId);
+
+      if (error) { toast('Erro: ' + error.message, 'error'); return; }
+      toast('Revive registado!');
+      fecharModal('modalRevive');
+      reviveCartaoId = null;
+      await carregarCartoes();
+    }
+
+    // ============================================================
+    // HISTÓRICO DE REVIVES
+    // ============================================================
+    function verHistoricoRevives(cartaoId) {
+      const c = cartoes.find(x => x.id === cartaoId);
+      if (!c) return;
+      const logs = revivesLog.filter(r => r.cartao_id === cartaoId);
+      const container = document.getElementById('historicoContent');
+
+      if (logs.length === 0) {
+        container.innerHTML = '<p style="color:#5a7a94;">Nenhum revive registado.</p>';
+      } else {
+        container.innerHTML = logs.map(r => `
+          <div style="padding:10px 0; border-bottom:1px solid rgba(56,189,248,.08); display:flex; align-items:center; gap:10px;">
+            ${r.admin_avatar ? `<img src="${r.admin_avatar}" style="width:28px;height:28px;border-radius:50%;" />` : ''}
+            <div>
+              <strong>${r.admin_nome}</strong>
+              <div style="font-size:11px;color:#5a7a94;">${new Date(r.created_at).toLocaleString('pt-PT')}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('historicoTitle').textContent = `Revives — ${c.nome} (${c.numero})`;
+      document.getElementById('modalHistorico').classList.add('active');
+    }
+
+    // ============================================================
+    // ADMIN TABLE
     // ============================================================
     function renderAdminTable() {
       const tbody = document.getElementById('adminTableBody');
@@ -983,7 +1077,8 @@
         filtrados = cartoes.filter(c =>
           c.nome.toLowerCase().includes(termo) ||
           c.numero.toLowerCase().includes(termo) ||
-          c.documento.toLowerCase().includes(termo)
+          c.documento.toLowerCase().includes(termo) ||
+          (c.criador_nome && c.criador_nome.toLowerCase().includes(termo))
         );
       }
 
@@ -997,26 +1092,37 @@
           if (c.validade < hoje) estado = '<span class="badge badge-expired">Expirado</span>';
           else if (c.revives <= 0) estado = '<span class="badge badge-zero">Sem Revives</span>';
 
+          const criador = c.criador_nome || '—';
+          const revivesUsados = c.revives_usados || 0;
+          const totalRevives = revivesUsados + (c.revives || 0);
+
           return `<tr>
-            <td><strong>${c.nome}</strong></td>
+            <td>
+              <strong>${c.nome}</strong>
+              <div style="font-size:10px;color:#5a7a94;margin-top:2px;">por ${criador}</div>
+            </td>
             <td>${c.documento}</td>
             <td>${c.numero}</td>
             <td>Plano ${c.plano}</td>
-            <td>${c.revives}</td>
+            <td>
+              <span style="font-weight:800;">${c.revives}</span>
+              <span style="font-size:10px;color:#5a7a94;">/${totalRevives}</span>
+            </td>
             <td>${formatarData(c.validade)}</td>
             <td>${estado}</td>
             <td>
               <div class="admin-actions">
-                <button class="btn-edit" onclick="editarCartao('${c.id}')">✏️</button>
-                <button class="btn-revive" onclick="revalidarCartao('${c.id}')">🔄</button>
-                <button class="btn-delete" onclick="apagarCartao('${c.id}')">🗑️</button>
+                <button class="btn-edit" onclick="editarCartao('${c.id}')" title="Editar">✏️</button>
+                <button class="btn-revive" onclick="abrirReviveModal('${c.id}')" title="Registar Revive">💀</button>
+                <button class="btn-revive" onclick="verHistoricoRevives('${c.id}')" title="Histórico Revives">📜</button>
+                <button class="btn-revive" onclick="revalidarCartao('${c.id}')" title="Revalidar 30 dias">🔄</button>
+                <button class="btn-delete" onclick="apagarCartao('${c.id}')" title="Apagar">🗑️</button>
               </div>
             </td>
           </tr>`;
         }).join('');
       }
 
-      // Stats
       const total = cartoes.length;
       const ativos = cartoes.filter(c => c.validade >= hoje && c.revives > 0).length;
       const expirados = cartoes.filter(c => c.validade < hoje).length;
@@ -1034,7 +1140,6 @@
     // ============================================================
     (async function init() {
       renderAuth();
-
       const { data: { session } } = await sb.auth.getSession();
       if (session?.user) {
         currentUser = session.user;
@@ -1044,7 +1149,6 @@
         novoCartao();
         await carregarCartoes();
       }
-
       sb.auth.onAuthStateChange(async (event, session) => {
         if (session?.user) {
           currentUser = session.user;
