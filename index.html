@@ -933,7 +933,7 @@
       deleteId = id;
       document.getElementById('modalDelete').classList.add('active');
       document.getElementById('btnConfirmDelete').onclick = async () => {
-        const { error } = await supabase.from('cartoes').delete().eq('id', deleteId);
+        const { error } = await sb.from('cartoes').delete().eq('id', deleteId);
         if (error) { toast('Erro ao apagar: ' + error.message, 'error'); return; }
         toast('Cartão apagado.');
         fecharModal();
@@ -963,7 +963,7 @@
       if (!c) return;
       const novaValidade = new Date();
       novaValidade.setDate(novaValidade.getDate() + 30);
-      const { error } = await supabase.from('cartoes').update({ validade: novaValidade.toISOString().slice(0,10) }).eq('id', id);
+      const { error } = await sb.from('cartoes').update({ validade: novaValidade.toISOString().slice(0,10) }).eq('id', id);
       if (error) { toast('Erro ao revalidar: ' + error.message, 'error'); return; }
       toast('Cartão revalidado por 30 dias!');
       await carregarCartoes();
@@ -1035,7 +1035,7 @@
     (async function init() {
       renderAuth();
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await sb.auth.getSession();
       if (session?.user) {
         currentUser = session.user;
         renderAuth();
@@ -1045,7 +1045,7 @@
         await carregarCartoes();
       }
 
-      supabase.auth.onAuthStateChange(async (event, session) => {
+      sb.auth.onAuthStateChange(async (event, session) => {
         if (session?.user) {
           currentUser = session.user;
           renderAuth();
