@@ -874,6 +874,13 @@
       if (!editingId) document.getElementById('numero').value = await gerarNumero();
       atualizar();
     });
+    document.getElementById('documento').addEventListener('input', async () => {
+      if (!editingId) {
+        const doc = document.getElementById('documento').value.trim();
+        if (doc) document.getElementById('numero').value = await gerarNumero();
+      }
+      atualizar();
+    });
     document.getElementById('inicio').addEventListener('change', () => {
       const v = document.getElementById('inicio').value;
       if (v) {
