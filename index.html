@@ -635,7 +635,10 @@
         </div>
         <div>
           <label>N.º do cartão</label>
-          <input id="numero" type="text" />
+          <div style="display:flex; gap:8px;">
+            <input id="numero" type="text" readonly style="flex:1;" />
+            <button type="button" class="primary" onclick="gerarNumero()" style="padding:10px 14px; font-size:12px; white-space:nowrap;">Gerar</button>
+          </div>
           <div class="field-help"><span class="icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><span>Número único do cartão (gerado automaticamente)</span></div>
         </div>
         <div>
@@ -869,18 +872,15 @@
     // ============================================================
     const formEls = ['nome','documento','numero','plano','restantes','inicio','validade'];
     formEls.forEach(id => document.getElementById(id).addEventListener('input', atualizar));
-    document.getElementById('plano').addEventListener('change', async () => {
+    document.getElementById('plano').addEventListener('change', () => {
       document.getElementById('restantes').value = planos[document.getElementById('plano').value].revives;
-      if (!editingId) document.getElementById('numero').value = await gerarNumero();
-      atualizar();
-    });
-    document.getElementById('documento').addEventListener('input', async () => {
-      if (!editingId) {
-        const doc = document.getElementById('documento').value.trim();
-        if (doc) document.getElementById('numero').value = await gerarNumero();
+      // Se já tem número, apagar e gerar novo
+      if (!editingId && document.getElementById('numero').value !== '—') {
+        gerarNumero();
       }
       atualizar();
     });
+    document.getElementById('documento').addEventListener('input', () => { atualizar(); });
     document.getElementById('inicio').addEventListener('change', () => {
       const v = document.getElementById('inicio').value;
       if (v) {
@@ -908,7 +908,7 @@
       editingId = null;
       document.getElementById('nome').value = '';
       document.getElementById('documento').value = '';
-      document.getElementById('numero').value = await gerarNumero();
+      document.getElementById('numero').value = '—';
       document.getElementById('plano').value = '03';
       document.getElementById('restantes').value = 100;
       const h = new Date(); document.getElementById('inicio').value = h.toISOString().slice(0,10);
@@ -930,11 +930,20 @@
       return proximo;
     }
 
+    let documentoAnterior = null;
+
     async function gerarNumero() {
       const plano = document.getElementById('plano').value;
       const documento = document.getElementById('documento').value.trim();
-      if (!documento) return '??-??-??';
+      if (!documento) { toast('Preencha o documento primeiro!', 'error'); return null; }
+
+      // Se o documento mudou, apagar o perfil antigo
+      if (documentoAnterior && documentoAnterior !== documento) {
+        await sb.from('perfis').delete().eq('documento', documentoAnterior);
+      }
+
       const pessoaNumero = await obterOuCriarPessoaId(documento);
+      documentoAnterior = documento;
 
       // Buscar o maior sequencial GLOBAL
       const { data } = await sb.from('cartoes').select('numero').limit(500);
@@ -949,7 +958,10 @@
         });
       }
 
-      return `${pessoaNumero}-${plano}-${maxSeq + 1}`;
+      const numero = `${pessoaNumero}-${plano}-${maxSeq + 1}`;
+      document.getElementById('numero').value = numero;
+      atualizar();
+      return numero;
     }
 
     // ============================================================
@@ -969,6 +981,13 @@
     }
 
     async function guardarCartao() {
+      // Gerar número se ainda não existe
+      const numeroAtual = document.getElementById('numero').value;
+      if (!numeroAtual || numeroAtual === '—') {
+        const gerado = await gerarNumero();
+        if (!gerado) return;
+      }
+
       const cartao = {
         nome: document.getElementById('nome').value.trim(),
         documento: document.getElementById('documento').value.trim(),
