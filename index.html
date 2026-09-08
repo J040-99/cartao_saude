@@ -930,26 +930,27 @@
       return proximo;
     }
 
-    let documentoAnterior = null;
-
     async function gerarNumero() {
       const plano = document.getElementById('plano').value;
       const documento = document.getElementById('documento').value.trim();
       if (!documento) { toast('Preencha o documento primeiro!', 'error'); return null; }
 
-      // Se o documento mudou, apagar o perfil antigo
-      if (documentoAnterior && documentoAnterior !== documento) {
-        await sb.from('perfis').delete().eq('documento', documentoAnterior);
+      // Buscar se já existe perfil para este documento
+      let pessoaNumero;
+      const { data } = await sb.from('perfis').select('pessoa_numero').eq('documento', documento).limit(1);
+      if (data && data.length > 0) {
+        pessoaNumero = data[0].pessoa_numero;
+      } else {
+        // Contar quantos perfis existem e adicionar 1
+        const { data: todos } = await sb.from('perfis').select('pessoa_numero').order('pessoa_numero', { ascending: false }).limit(1);
+        pessoaNumero = (todos && todos.length > 0) ? todos[0].pessoa_numero + 1 : 1;
       }
 
-      const pessoaNumero = await obterOuCriarPessoaId(documento);
-      documentoAnterior = documento;
-
       // Buscar o maior sequencial GLOBAL
-      const { data } = await sb.from('cartoes').select('numero').limit(500);
+      const { data: cartoes } = await sb.from('cartoes').select('numero').limit(500);
       let maxSeq = 0;
-      if (data) {
-        data.forEach(row => {
+      if (cartoes) {
+        cartoes.forEach(row => {
           if (row.numero) {
             const partes = row.numero.split('-');
             const seq = parseInt(partes[partes.length - 1], 10);
@@ -986,6 +987,16 @@
       if (!numeroAtual || numeroAtual === '—') {
         const gerado = await gerarNumero();
         if (!gerado) return;
+      }
+
+      const documento = document.getElementById('documento').value.trim();
+
+      // Registar perfil se não existe
+      const { data: existing } = await sb.from('perfis').select('pessoa_numero').eq('documento', documento).limit(1);
+      if (!existing || existing.length === 0) {
+        const { data: todos } = await sb.from('perfis').select('pessoa_numero').order('pessoa_numero', { ascending: false }).limit(1);
+        const proximo = (todos && todos.length > 0) ? todos[0].pessoa_numero + 1 : 1;
+        await sb.from('perfis').insert({ documento: documento, pessoa_numero: proximo });
       }
 
       const cartao = {
