@@ -641,11 +641,11 @@
         <div>
           <label>Plano</label>
           <select id="plano">
-            <option value="50">Plano 50 — 50 revives/mês (5% desconto)</option>
-            <option value="75">Plano 75 — 75 revives/mês (10% desconto)</option>
-            <option value="100" selected>Plano 100 — 100 revives/mês (15% desconto)</option>
-            <option value="120">Plano 120 — 120 revives/mês (20% desconto)</option>
-            <option value="150">Plano 150 — 150 revives/mês (25% desconto)</option>
+            <option value="01">01 — 50 revives/mês (5% desconto)</option>
+            <option value="02">02 — 75 revives/mês (10% desconto)</option>
+            <option value="03" selected>03 — 100 revives/mês (15% desconto)</option>
+            <option value="04">04 — 120 revives/mês (20% desconto)</option>
+            <option value="05">05 — 150 revives/mês (25% desconto)</option>
           </select>
           <div class="field-help"><span class="icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><span>Quanto maior o plano, mais revives e desconto</span></div>
         </div>
@@ -782,11 +782,11 @@
     let reviveCartaoId = null;
 
     const planos = {
-      50:  { revives: 50,  desconto: 5,  preco: '1.900.000' },
-      75:  { revives: 75,  desconto: 10, preco: '2.700.000' },
-      100: { revives: 100, desconto: 15, preco: '3.400.000' },
-      120: { revives: 120, desconto: 20, preco: '3.840.000' },
-      150: { revives: 150, desconto: 25, preco: '4.500.000' }
+      '01': { revives: 50,  desconto: 5,  preco: '1.900.000', nome: 'Plano Básico' },
+      '02': { revives: 75,  desconto: 10, preco: '2.700.000', nome: 'Plano Standard' },
+      '03': { revives: 100, desconto: 15, preco: '3.400.000', nome: 'Plano Premium' },
+      '04': { revives: 120, desconto: 20, preco: '3.840.000', nome: 'Plano Gold' },
+      '05': { revives: 150, desconto: 25, preco: '4.500.000', nome: 'Plano Platinum' }
     };
 
     // ============================================================
@@ -896,11 +896,11 @@
       document.getElementById('outMeta').innerHTML = `${p.revives} revives/mês<br>${p.desconto}% desconto`;
     }
 
-    function novoCartao() {
+    async function novoCartao() {
       editingId = null;
       document.getElementById('nome').value = '';
       document.getElementById('documento').value = '';
-      document.getElementById('numero').value = gerarNumero();
+      document.getElementById('numero').value = await gerarNumero();
       document.getElementById('plano').value = '100';
       document.getElementById('restantes').value = 100;
       const h = new Date(); document.getElementById('inicio').value = h.toISOString().slice(0,10);
@@ -908,7 +908,39 @@
       atualizar();
     }
 
-    function gerarNumero() { return 'HLS-' + String(Math.floor(Math.random() * 99999) + 1).padStart(5, '0'); }
+    async function obterOuCriarPessoaId(userId) {
+      // Verificar se já tem um número de pessoa
+      const { data } = await sb.from('perfis').select('pessoa_numero').eq('user_id', userId).limit(1);
+      if (data && data.length > 0) return data[0].pessoa_numero;
+
+      // Criar novo número sequencial
+      const { data: todos } = await sb.from('perfis').select('pessoa_numero').order('pessoa_numero', { ascending: false }).limit(1);
+      let proximo = 1;
+      if (todos && todos.length > 0) proximo = todos[0].pessoa_numero + 1;
+
+      await sb.from('perfis').insert({ user_id: userId, pessoa_numero: proximo });
+      return proximo;
+    }
+
+    async function gerarNumero() {
+      const plano = document.getElementById('plano').value;
+      const pessoaNumero = await obterOuCriarPessoaId(currentUser.id);
+
+      // Buscar o maior sequencial GLOBAL (sem重复, mesmo entre planos diferentes)
+      const { data } = await sb.from('cartoes').select('numero').limit(500);
+      let maxSeq = 0;
+      if (data) {
+        data.forEach(row => {
+          if (row.numero) {
+            const partes = row.numero.split('-');
+            const seq = parseInt(partes[partes.length - 1], 10);
+            if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+          }
+        });
+      }
+
+      return `${pessoaNumero}-${plano}-${maxSeq + 1}`;
+    }
 
     // ============================================================
     // SUPABASE — CRUD CARTÕES
