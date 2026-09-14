@@ -212,9 +212,6 @@
       border: none;
       box-shadow: none;
       background: linear-gradient(135deg, #0a1624 0%, #0b2238 55%, #103c5f 100%);
-      width: 760px;
-      height: 480px;
-      min-height: 0;
     }
     .card.export-mode::before {
       content: "";
@@ -1317,11 +1314,22 @@
     // ============================================================
     async function exportarPNG() {
       const card = document.getElementById('card');
-      // Fixar tamanho do cartão para proporção constante, independente do browser
-      card.classList.add('export-mode');
+      // Criar clone fora do ecrã com largura fixa (proporção estável, sem cortar)
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'position:fixed; left:-99999px; top:0; width:760px; pointer-events:none;';
+      const clone = card.cloneNode(true);
+      clone.style.width = '760px';
+      clone.style.minHeight = '0';
+      clone.style.border = 'none';
+      clone.style.boxShadow = 'none';
+      clone.classList.add('export-mode');
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
       try {
-        // Capturar o cartão exatamente como aparece (com radial-gradients)
-        const dataUrl = await window.domtoimage.toPng(card, {
+        // Capturar o clone com proporção fixa
+        const dataUrl = await window.domtoimage.toPng(clone, {
+          width: 760,
+          height: Math.round(760 / 1.586),
           scale: 2,
           backgroundColor: '#0a1624'
         });
@@ -1333,7 +1341,7 @@
       } catch (e) {
         toast('Erro ao exportar: ' + e.message, 'error');
       } finally {
-        card.classList.remove('export-mode');
+        wrapper.remove();
       }
     }
 
