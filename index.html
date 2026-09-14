@@ -211,9 +211,18 @@
     .card.export-mode {
       border: none;
       box-shadow: none;
+      background: linear-gradient(135deg, #0a1624 0%, #0b2238 55%, #103c5f 100%);
     }
     .card.export-mode::before {
-      content: none;
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 0 42%, rgba(255,255,255,.035) 42% 44%, transparent 44% 100%);
+      pointer-events: none;
+    }
+    .card.export-mode .plan-box {
+      border: none;
+      box-shadow: none;
     }
 
     .card-top { display:flex; justify-content:space-between; align-items:flex-start; position:relative; z-index:1; }
@@ -1305,19 +1314,12 @@
     // ============================================================
     async function exportarPNG() {
       const card = document.getElementById('card');
-      // Esconder o ::before (linha vertical) durante a captura
-      card.classList.add('no-before');
+      // Simplificar o cartão durante a captura (remove linha/bordas)
+      card.classList.add('export-mode');
       try {
         const canvas = await html2canvas(card, {
           backgroundColor: null,
-          scale: 2,
-          onclone: (doc) => {
-            const clone = doc.getElementById('card');
-            if (clone) {
-              clone.style.border = 'none';
-              clone.style.boxShadow = 'none';
-            }
-          }
+          scale: 2
         });
         const link = document.createElement('a');
         link.download = `cartao-${document.getElementById('numero').value || 'saude'}.png`;
@@ -1325,7 +1327,7 @@
         link.click();
         toast('PNG exportado!');
       } finally {
-        card.classList.remove('no-before');
+        card.classList.remove('export-mode');
       }
     }
 
