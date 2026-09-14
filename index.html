@@ -206,6 +206,16 @@
       pointer-events: none;
     }
 
+    .card.no-before::before { content: none !important; }
+
+    .card.export-mode {
+      border: none;
+      box-shadow: none;
+    }
+    .card.export-mode::before {
+      content: none;
+    }
+
     .card-top { display:flex; justify-content:space-between; align-items:flex-start; position:relative; z-index:1; }
     .brand { display:flex; gap:12px; align-items:center; }
     .brand-symbol {
@@ -1295,27 +1305,28 @@
     // ============================================================
     async function exportarPNG() {
       const card = document.getElementById('card');
-      const canvas = await html2canvas(card, {
-        backgroundColor: null,
-        scale: 2,
-        onclone: (doc) => {
-          const clone = doc.getElementById('card');
-          if (clone) {
-            // Remover a linha vertical (::before não é clonável, remover por CSS inline)
-            clone.style.border = 'none';
-            clone.style.boxShadow = 'none';
-            // Remover o pseudo-elemento ::before via CSS injetado
-            const style = doc.createElement('style');
-            style.textContent = '#card::before { content: none !important; }';
-            doc.head.appendChild(style);
+      // Esconder o ::before (linha vertical) durante a captura
+      card.classList.add('no-before');
+      try {
+        const canvas = await html2canvas(card, {
+          backgroundColor: null,
+          scale: 2,
+          onclone: (doc) => {
+            const clone = doc.getElementById('card');
+            if (clone) {
+              clone.style.border = 'none';
+              clone.style.boxShadow = 'none';
+            }
           }
-        }
-      });
-      const link = document.createElement('a');
-      link.download = `cartao-${document.getElementById('numero').value || 'saude'}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      toast('PNG exportado!');
+        });
+        const link = document.createElement('a');
+        link.download = `cartao-${document.getElementById('numero').value || 'saude'}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        toast('PNG exportado!');
+      } finally {
+        card.classList.remove('no-before');
+      }
     }
 
     // ============================================================
