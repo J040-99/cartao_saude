@@ -1046,6 +1046,21 @@
       deleteId = id;
       document.getElementById('modalDelete').classList.add('active');
       document.getElementById('btnConfirmDelete').onclick = async () => {
+        const cartao = cartoes.find(c => c.id === deleteId);
+
+        // Registar no audit_log — se falhar, NÃO apaga
+        const { error: logErr } = await sb.from('audit_log').insert({
+          acao: 'apagar_cartao',
+          tabela: 'cartoes',
+          registro_id: deleteId,
+          dados: cartao ? { nome: cartao.nome, numero: cartao.numero, documento: cartao.documento, plano: cartao.plano } : null,
+          admin_id: currentUser?.id,
+          admin_nome: getUserName(),
+          admin_avatar: getUserAvatar()
+        });
+        if (logErr) { toast('Erro ao registar log: ' + logErr.message, 'error'); return; }
+
+        // Apagar revives associados e o cartão
         await sb.from('revives').delete().eq('cartao_id', deleteId);
         const { error } = await sb.from('cartoes').delete().eq('id', deleteId);
         if (error) { toast('Erro: ' + error.message, 'error'); return; }
