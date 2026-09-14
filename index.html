@@ -952,25 +952,15 @@
       if (data && data.length > 0) {
         pessoaNumero = data[0].pessoa_numero;
       } else {
-        // Contar quantos perfis existem e adicionar 1
         const { data: todos } = await sb.from('perfis').select('pessoa_numero').order('pessoa_numero', { ascending: false }).limit(1);
         pessoaNumero = (todos && todos.length > 0) ? todos[0].pessoa_numero + 1 : 1;
       }
 
-      // Buscar o maior sequencial GLOBAL
-      const { data: cartoes } = await sb.from('cartoes').select('numero').limit(500);
-      let maxSeq = 0;
-      if (cartoes) {
-        cartoes.forEach(row => {
-          if (row.numero) {
-            const partes = row.numero.split('-');
-            const seq = parseInt(partes[partes.length - 1], 10);
-            if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
-          }
-        });
-      }
+      // Obter próximo sequencial de forma segura (atomic no servidor)
+      const { data: maxSeq, error: seqErr } = await sb.rpc('gerar_proximo_sequencial');
+      if (seqErr) { toast('Erro ao gerar número: ' + seqErr.message, 'error'); return null; }
 
-      const numero = `${pessoaNumero}-${plano}-${maxSeq + 1}`;
+      const numero = `${pessoaNumero}-${plano}-${maxSeq}`;
       document.getElementById('numero').value = numero;
       atualizar();
       return numero;
