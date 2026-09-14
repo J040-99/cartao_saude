@@ -206,25 +206,6 @@
       pointer-events: none;
     }
 
-    .card.no-before::before { content: none !important; }
-
-    .card.export-mode {
-      border: none;
-      box-shadow: none;
-      background: linear-gradient(135deg, #0a1624 0%, #0b2238 55%, #103c5f 100%);
-    }
-    .card.export-mode::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, transparent 0 42%, rgba(255,255,255,.035) 42% 44%, transparent 44% 100%);
-      pointer-events: none;
-    }
-    .card.export-mode .plan-box {
-      border: none;
-      box-shadow: none;
-    }
-
     .card-top { display:flex; justify-content:space-between; align-items:flex-start; position:relative; z-index:1; }
     .brand { display:flex; gap:12px; align-items:center; }
     .brand-symbol {
@@ -684,8 +665,6 @@
           <div class="field-help"><span class="icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><span>Quanto maior o plano, mais revives e desconto</span></div>
         </div>
         <div>
-          <label>Revives restantes</label>
-          <input id="restantes" type="number" value="100" min="0" />
           <div class="field-help"><span class="icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><span>Quantas vezes ainda pode usar o revive</span></div>
         </div>
         <div>
@@ -742,8 +721,8 @@
             <div class="footer-note">Pessoal e intransmissível</div>
           </div>
           <div>
-            <div class="small-label"> </div>
-            <div class="value"> </div>
+            <div class="small-label">Revives restantes</div>
+            <div class="value" id="outRestantes">—</div>
             <div class="footer-note">Taxa transporte: 10.000</div>
           </div>
           <div>
@@ -1314,22 +1293,17 @@
     // ============================================================
     async function exportarPNG() {
       const card = document.getElementById('card');
-      // Criar clone fora do ecrã com largura fixa (proporção estável, sem cortar)
       const wrapper = document.createElement('div');
       wrapper.style.cssText = 'position:fixed; left:-99999px; top:0; width:760px; pointer-events:none;';
       const clone = card.cloneNode(true);
       clone.style.width = '760px';
-      clone.style.minHeight = '0';
       clone.style.border = 'none';
       clone.style.boxShadow = 'none';
-      clone.classList.add('export-mode');
       wrapper.appendChild(clone);
       document.body.appendChild(wrapper);
       try {
-        // Capturar o clone com proporção fixa
         const dataUrl = await window.domtoimage.toPng(clone, {
           width: 760,
-          height: Math.round(760 / 1.586),
           scale: 2,
           backgroundColor: '#0a1624'
         });
