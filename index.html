@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gerador de Cartões de Saúde — Hospital de Los Santos</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     :root {
       --bg: #071523;
@@ -683,6 +684,7 @@
       <div class="actions">
         <button class="primary" onclick="guardarCartao()">Guardar na Base de Dados</button>
         <button class="secondary" onclick="window.print()">Imprimir / PDF</button>
+        <button class="success" onclick="exportarPNG()">Exportar PNG</button>
       </div>
     </section>
 
@@ -1287,6 +1289,22 @@
     }
 
     function filtrarCartoes() { renderAdminTable(); }
+
+    // ============================================================
+    // EXPORTAR PNG
+    // ============================================================
+    async function exportarPNG() {
+      const card = document.getElementById('card');
+      const canvas = await html2canvas(card, {
+        backgroundColor: null,
+        scale: 2
+      });
+      const link = document.createElement('a');
+      link.download = `cartao-${document.getElementById('numero').value || 'saude'}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      toast('PNG exportado!');
+    }
 
     // ============================================================
     // INIT
