@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gerador de Cartões de Saúde — Hospital de Los Santos</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/modern-screenshot@4/dist/index.js"></script>
   <style>
     :root {
       --bg: #071523;
@@ -1314,20 +1314,19 @@
     // ============================================================
     async function exportarPNG() {
       const card = document.getElementById('card');
-      // Simplificar o cartão durante a captura (remove linha/bordas)
-      card.classList.add('export-mode');
       try {
-        const canvas = await html2canvas(card, {
-          backgroundColor: null,
-          scale: 2
+        // Capturar o cartão exatamente como aparece (com radial-gradients)
+        const dataUrl = await window.domToPng(card, {
+          scale: 2,
+          backgroundColor: '#0a1624'
         });
         const link = document.createElement('a');
         link.download = `cartao-${document.getElementById('numero').value || 'saude'}.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.href = dataUrl;
         link.click();
         toast('PNG exportado!');
-      } finally {
-        card.classList.remove('export-mode');
+      } catch (e) {
+        toast('Erro ao exportar: ' + e.message, 'error');
       }
     }
 
