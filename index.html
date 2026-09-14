@@ -183,7 +183,11 @@
 
     .card {
       width: 100%;
+<<<<<<< HEAD
       min-height: 480px;
+=======
+      height: 480px;
+>>>>>>> aa066093166c3e34c4b834acdbcec357b40a6fc5
       border-radius: 26px;
       overflow: hidden;
       position: relative;
@@ -937,6 +941,7 @@
       document.getElementById('outNumero').textContent = document.getElementById('numero').value || '—';
       document.getElementById('outPlano').textContent = plano;
       document.getElementById('outRestantes').textContent = document.getElementById('restantes').value || '0';
+<<<<<<< HEAD
 
       // Parceria — esconder revives e validade, mostrar detalhes do parceiro
       if (p.parceiro) {
@@ -954,6 +959,20 @@
         document.getElementById('outRestantes').textContent = document.getElementById('restantes').value || '0';
         document.getElementById('outValidade').textContent = formatarData(document.getElementById('validade').value);
         document.getElementById('outValidade').previousElementSibling.textContent = 'Válido até';
+=======
+      document.getElementById('outValidade').textContent = formatarData(document.getElementById('validade').value);
+
+      // Parceria — esconder campo revives, mostrar detalhes do parceiro
+      if (p.parceiro) {
+        document.getElementById('restantesWrap').style.display = 'none';
+        document.getElementById('outRestantes').parentElement.querySelector('.small-label').textContent = 'Parceria';
+        document.getElementById('outRestantes').textContent = p.parceiro;
+        document.getElementById('outMeta').innerHTML = `<strong>${p.parceiro}</strong><br>${p.descontoKits} por kit médico${p.reviveInterno ? '<br>Revive: ' + p.reviveInterno + ' interno / ' + p.reviveExterno + ' externo' : ''}${p.kitsExtras ? '<br>' + p.kitsExtras : ''}${p.eventos ? '<br>Eventos: ' + p.eventos : ''}${p.tratamento ? '<br>' + p.tratamento : ''}`;
+      } else {
+        document.getElementById('restantesWrap').style.display = '';
+        document.getElementById('outRestantes').parentElement.querySelector('.small-label').textContent = 'Revives restantes';
+        document.getElementById('outRestantes').textContent = document.getElementById('restantes').value || '0';
+>>>>>>> aa066093166c3e34c4b834acdbcec357b40a6fc5
         document.getElementById('outMeta').innerHTML = `${p.revives} revives/mês<br>${p.desconto}% desconto`;
       }
     }
