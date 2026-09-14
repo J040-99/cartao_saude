@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gerador de Cartões de Saúde — Hospital de Los Santos</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/modern-screenshot@4/dist/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dom-to-image-more@3/dist/dom-to-image-more.js"></script>
   <style>
     :root {
       --bg: #071523;
@@ -1316,7 +1316,7 @@
       const card = document.getElementById('card');
       try {
         // Capturar o cartão exatamente como aparece (com radial-gradients)
-        const dataUrl = await window.domToPng(card, {
+        const dataUrl = await window.domtoimage.toPng(card, {
           scale: 2,
           backgroundColor: '#0a1624'
         });
