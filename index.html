@@ -1297,7 +1297,19 @@
       const card = document.getElementById('card');
       const canvas = await html2canvas(card, {
         backgroundColor: null,
-        scale: 2
+        scale: 2,
+        onclone: (doc) => {
+          const clone = doc.getElementById('card');
+          if (clone) {
+            // Remover a linha vertical (::before não é clonável, remover por CSS inline)
+            clone.style.border = 'none';
+            clone.style.boxShadow = 'none';
+            // Remover o pseudo-elemento ::before via CSS injetado
+            const style = doc.createElement('style');
+            style.textContent = '#card::before { content: none !important; }';
+            doc.head.appendChild(style);
+          }
+        }
       });
       const link = document.createElement('a');
       link.download = `cartao-${document.getElementById('numero').value || 'saude'}.png`;
