@@ -202,8 +202,55 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(120deg, transparent 0 42%, rgba(255,255,255,.035) 42% 44%, transparent 44% 100%);
+      background:
+        linear-gradient(120deg, transparent 0 40%, rgba(255,255,255,.045) 40% 42%, transparent 42% 100%),
+        linear-gradient(120deg, transparent 0 55%, rgba(125,211,252,.06) 55% 58%, transparent 58% 100%),
+        linear-gradient(120deg, transparent 0 70%, rgba(167,139,250,.05) 70% 72%, transparent 72% 100%);
       pointer-events: none;
+    }
+
+    .card-wm {
+      position: absolute;
+      left: 26px;
+      bottom: 140px;
+      width: 240px;
+      height: 240px;
+      color: #7dd3fc;
+      opacity: .06;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .card-wm svg { width: 100%; height: 100%; }
+
+    /* VIP — planos de parceria */
+    .vip-flag {
+      display: none;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: #3a2a02;
+      background: linear-gradient(135deg, #fde68a, #f59e0b);
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin: 0 auto 8px;
+      width: max-content;
+      box-shadow: 0 4px 14px rgba(245,158,11,.35);
+    }
+    .card.is-parceiro .vip-flag { display: block; }
+    .card.is-parceiro { border-color: rgba(250,204,21,.35); }
+    .card.is-parceiro .plan-box {
+      background: linear-gradient(180deg, rgba(250,204,21,.16), rgba(250,204,21,.04));
+      border-color: rgba(250,204,21,.5);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 0 30px rgba(250,204,21,.16);
+    }
+    .card.is-parceiro .plan-label { color: #fcd34d; }
+    .card.is-parceiro .plan { color: #fde68a; text-shadow: 0 0 20px rgba(250,204,21,.4); }
+    .card.is-parceiro .plan-meta { color: #fef3c7; }
+    .card.is-parceiro .status {
+      background: rgba(250,204,21,.10);
+      border-color: rgba(250,204,21,.4);
+      color: #fcd34d;
     }
 
     .card-top { display:flex; justify-content:space-between; align-items:flex-start; position:relative; z-index:1; }
@@ -696,6 +743,9 @@
     <section class="panel preview-wrap">
       <p class="preview-title">Pré-visualização do cartão</p>
       <div class="card" id="card">
+        <div class="card-wm" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="12" y1="2.5" x2="12" y2="21.5"/><line x1="2.5" y1="12" x2="21.5" y2="12"/></svg>
+        </div>
         <div class="card-top">
           <div class="brand">
             <div class="brand-symbol">
@@ -716,6 +766,7 @@
             <div class="idline" id="outDocumento">—</div>
           </div>
           <div class="plan-box">
+            <div class="vip-flag">★ Parceria VIP</div>
             <div class="plan-label">Plano ativo</div>
             <div class="plan" id="outPlano">100</div>
             <div class="plan-meta" id="outMeta">100 revives/mês<br>15% desconto</div>
@@ -938,6 +989,7 @@
     function atualizar() {
       const plano = document.getElementById('plano').value;
       const p = planos[plano];
+      document.getElementById('card').classList.toggle('is-parceiro', !!p.parceiro);
       document.getElementById('outNome').textContent = (document.getElementById('nome').value || 'SEM NOME').toUpperCase();
       document.getElementById('outDocumento').textContent = document.getElementById('documento').value || '—';
       document.getElementById('outNumero').textContent = document.getElementById('numero').value || '—';
