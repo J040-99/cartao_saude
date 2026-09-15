@@ -782,11 +782,11 @@
             <div class="footer-note">Taxa transporte: 10.000</div>
           </div>
           <div>
-            <div id="restantesWrap">
-              <div class="small-label">Revives restantes</div>
-              <div class="value" id="outRestantes">100</div>
+            <div id="cardParceriaWrap" style="display:none">
+              <div class="small-label">Parceria</div>
+              <div class="value" id="outParceria">—</div>
             </div>
-            <div id="validadeWrap">
+            <div id="cardValidadeWrap">
               <div class="small-label">Válido até</div>
               <div class="value" id="outValidade">—</div>
             </div>
@@ -994,23 +994,23 @@
       document.getElementById('outDocumento').textContent = document.getElementById('documento').value || '—';
       document.getElementById('outNumero').textContent = document.getElementById('numero').value || '—';
       document.getElementById('outPlano').textContent = plano;
-      document.getElementById('outRestantes').textContent = document.getElementById('restantes').value || '0';
-      // Parceria — esconder revives e validade, mostrar detalhes do parceiro
       if (p.parceiro) {
+        // Formulário: parcerias não têm revives nem validade
         document.getElementById('restantesWrap').style.display = 'none';
         document.getElementById('validadeWrap').style.display = 'none';
-        document.getElementById('outRestantes').parentElement.querySelector('.small-label').textContent = 'Parceria';
-        document.getElementById('outRestantes').textContent = p.parceiro;
+        // Cartão: mostra parceiro + benefício
+        document.getElementById('cardParceriaWrap').style.display = '';
+        document.getElementById('outParceria').textContent = p.parceiro;
+        document.getElementById('cardValidadeWrap').querySelector('.small-label').textContent = 'Benefício';
         document.getElementById('outValidade').textContent = 'Sem validade';
-        document.getElementById('outValidade').previousElementSibling.textContent = 'Benefício';
         document.getElementById('outMeta').innerHTML = `<strong>${p.parceiro}</strong><br>${p.descontoKits} por kit médico${p.reviveInterno ? '<br>Revive: ' + p.reviveInterno + ' interno / ' + p.reviveExterno + ' externo' : ''}${p.kitsExtras ? '<br>' + p.kitsExtras : ''}${p.eventos ? '<br>Eventos: ' + p.eventos : ''}${p.tratamento ? '<br>' + p.tratamento : ''}`;
       } else {
         document.getElementById('restantesWrap').style.display = '';
         document.getElementById('validadeWrap').style.display = '';
-        document.getElementById('outRestantes').parentElement.querySelector('.small-label').textContent = 'Revives restantes';
-        document.getElementById('outRestantes').textContent = document.getElementById('restantes').value || '0';
+        // Cartão: revives restantes não aparece (número variável)
+        document.getElementById('cardParceriaWrap').style.display = 'none';
+        document.getElementById('cardValidadeWrap').querySelector('.small-label').textContent = 'Válido até';
         document.getElementById('outValidade').textContent = formatarData(document.getElementById('validade').value);
-        document.getElementById('outValidade').previousElementSibling.textContent = 'Válido até';
         document.getElementById('outMeta').innerHTML = `${p.revives} revives/mês<br>${p.desconto}% desconto`;
       }
     }
