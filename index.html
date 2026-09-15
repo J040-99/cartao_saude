@@ -688,7 +688,7 @@
           <div class="field-help"><span class="icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><span>Nome completo da pessoa que vai usar o cartão</span></div>
         </div>
         <div>
-          <label>ID / Passaporte</label>
+          <label id="labelDocForm">ID / Passaporte</label>
           <input id="documento" type="text" placeholder="Ex.: LS-1024" />
           <div class="field-help"><span class="icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><span>Número do documento de identificação</span></div>
         </div>
@@ -762,7 +762,7 @@
           <div>
             <div class="small-label">Titular</div>
             <div class="name" id="outNome">—</div>
-            <div class="small-label">ID / Passaporte</div>
+            <div class="small-label" id="labelDocCard">ID / Passaporte</div>
             <div class="idline" id="outDocumento">—</div>
           </div>
           <div class="plan-box">
@@ -990,6 +990,9 @@
       document.getElementById('outDocumento').textContent = document.getElementById('documento').value || '—';
       document.getElementById('outNumero').textContent = document.getElementById('numero').value || '—';
       document.getElementById('outPlano').textContent = plano;
+      const docLabel = p.parceiro ? 'Código' : 'ID / Passaporte';
+      document.getElementById('labelDocForm').textContent = docLabel;
+      document.getElementById('labelDocCard').textContent = docLabel;
       if (p.parceiro) {
         // Formulário: parcerias não têm revives nem validade
         document.getElementById('restantesWrap').style.display = 'none';
