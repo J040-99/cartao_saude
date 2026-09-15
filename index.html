@@ -182,7 +182,7 @@
 
     .card {
       width: 520px;
-      height: 330px;
+      min-height: 330px;
       border-radius: 16px;
       overflow: hidden;
       position: relative;
@@ -255,20 +255,20 @@
     }
 
     .card-top { display:flex; justify-content:space-between; align-items:flex-start; position:relative; z-index:1; }
-    .brand { display:flex; gap:12px; align-items:center; }
+    .brand { display:flex; gap:10px; align-items:center; }
     .brand-symbol {
-      width: 48px; height:48px; border-radius:14px; border: 2px solid #38bdf8;
-      display:grid; place-items:center; color:#38bdf8; font-size:26px; font-weight:900;
+      width: 38px; height:38px; border-radius:10px; border: 2px solid #38bdf8;
+      display:grid; place-items:center; color:#38bdf8; font-size:22px; font-weight:900;
       box-shadow: 0 0 22px rgba(56,189,248,.22);
     }
-    .brand h2 { margin:0; font-size:16px; letter-spacing:.04em; }
-    .brand p { margin:3px 0 0; font-size:10px; letter-spacing:.22em; color:#7dd3fc; text-transform:uppercase; }
+    .brand h2 { margin:0; font-size:14px; letter-spacing:.04em; }
+    .brand p { margin:2px 0 0; font-size:9px; letter-spacing:.22em; color:#7dd3fc; text-transform:uppercase; }
 
     .status {
-      font-size: 10px;
+      font-size: 9px;
       text-transform: uppercase;
       letter-spacing: .18em;
-      padding: 8px 10px;
+      padding: 5px 9px;
       border-radius: 999px;
       background: rgba(14,165,233,.12);
       color: #7dd3fc;
@@ -278,15 +278,15 @@
     .card-main {
       position: relative;
       z-index: 1;
-      margin-top: 20px;
+      margin-top: 14px;
       display: grid;
-      grid-template-columns: minmax(0, 1.35fr) minmax(180px, .8fr);
-      gap: 20px;
+      grid-template-columns: minmax(0, 1.35fr) minmax(160px, .8fr);
+      gap: 16px;
       align-items: start;
     }
-    .small-label { font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:#8bb7d3; margin-bottom:5px; }
-    .name { font-size:24px; font-weight:900; letter-spacing:.03em; margin-bottom:12px; text-transform:uppercase; }
-    .idline { font-size:13px; color:#dbeafe; letter-spacing:.08em; }
+    .small-label { font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:#8bb7d3; margin-bottom:3px; }
+    .name { font-size:20px; font-weight:900; letter-spacing:.03em; margin-bottom:8px; text-transform:uppercase; }
+    .idline { font-size:12px; color:#dbeafe; letter-spacing:.08em; }
 
     .plan-box {
       background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
