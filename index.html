@@ -1432,19 +1432,24 @@
     // ============================================================
     async function exportarPNG() {
       const card = document.getElementById('card');
+      const rect = card.getBoundingClientRect();
+      const w = Math.round(rect.width);
+      const h = Math.round(rect.height);
       const wrapper = document.createElement('div');
-      wrapper.style.cssText = 'position:fixed; left:-99999px; top:0; width:520px; pointer-events:none;';
+      wrapper.style.cssText = 'position:fixed; left:-99999px; top:0; pointer-events:none;';
       const clone = card.cloneNode(true);
-      clone.style.width = '520px';
-      clone.style.minHeight = '330px';
+      clone.style.width = w + 'px';
+      clone.style.height = h + 'px';
+      clone.style.minHeight = '0';
       clone.style.border = 'none';
       clone.style.boxShadow = 'none';
       wrapper.appendChild(clone);
       document.body.appendChild(wrapper);
       try {
         const dataUrl = await window.domtoimage.toPng(clone, {
-          width: 520,
-          height: clone.offsetHeight,
+          width: w,
+          height: h,
+          style: { width: w + 'px', height: h + 'px', minHeight: '0' },
           scale: 2,
           backgroundColor: '#0a1624'
         });
