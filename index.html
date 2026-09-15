@@ -782,10 +782,6 @@
             <div class="footer-note">Taxa transporte: 10.000</div>
           </div>
           <div>
-            <div id="cardParceriaWrap" style="display:none">
-              <div class="small-label">Parceria</div>
-              <div class="value" id="outParceria">—</div>
-            </div>
             <div id="cardValidadeWrap">
               <div class="small-label">Válido até</div>
               <div class="value" id="outValidade">—</div>
@@ -998,9 +994,7 @@
         // Formulário: parcerias não têm revives nem validade
         document.getElementById('restantesWrap').style.display = 'none';
         document.getElementById('validadeWrap').style.display = 'none';
-        // Cartão: mostra parceiro + benefício
-        document.getElementById('cardParceriaWrap').style.display = '';
-        document.getElementById('outParceria').textContent = p.parceiro;
+        // Cartão: mostra benefício (parceiro já aparece no plano)
         document.getElementById('cardValidadeWrap').querySelector('.small-label').textContent = 'Benefício';
         document.getElementById('outValidade').textContent = 'Sem validade';
         document.getElementById('outMeta').innerHTML = `<strong>${p.parceiro}</strong><br>${p.descontoKits} por kit médico${p.reviveInterno ? '<br>Revive: ' + p.reviveInterno + ' interno / ' + p.reviveExterno + ' externo' : ''}${p.kitsExtras ? '<br>' + p.kitsExtras : ''}${p.eventos ? '<br>Eventos: ' + p.eventos : ''}${p.tratamento ? '<br>' + p.tratamento : ''}`;
@@ -1008,7 +1002,6 @@
         document.getElementById('restantesWrap').style.display = '';
         document.getElementById('validadeWrap').style.display = '';
         // Cartão: revives restantes não aparece (número variável)
-        document.getElementById('cardParceriaWrap').style.display = 'none';
         document.getElementById('cardValidadeWrap').querySelector('.small-label').textContent = 'Válido até';
         document.getElementById('outValidade').textContent = formatarData(document.getElementById('validade').value);
         document.getElementById('outMeta').innerHTML = `${p.revives} revives/mês<br>${p.desconto}% desconto`;
