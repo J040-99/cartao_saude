@@ -4,14 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gerador de Cartões de Saúde — Hospital de Los Santos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/dom-to-image-more@3.10.2/dist/dom-to-image-more.min.js"></script>
   <style>
     :root {
+      --red-deep: #170a0b;
+      --red-mid: #2c1214;
+      --red-panel: #3d171a;
+      --red-accent: #c8313f;
+      --red-soft: #7a1e24;
+      --gold: #d8b56a;
+      --ink: #f2f5f8;
+      --ink-dim: #b89a9c;
+      --line: rgba(255,255,255,0.09);
       --bg: #071523;
       --panel: #0d2135;
       --panel-2: #102a43;
-      --line: #1f7fd1;
       --cyan: #38bdf8;
       --blue: #0ea5e9;
       --text: #f8fafc;
@@ -25,9 +36,12 @@
       margin: 0;
       min-height: 100vh;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at top right, rgba(14,165,233,.22), transparent 35%),
-        linear-gradient(135deg, #050d16, #071523 45%, #0b1d30);
+      background-image:
+        linear-gradient(175deg, rgba(6,10,17,0.9) 0%, rgba(6,10,17,0.95) 60%, #05090f 100%),
+        url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABAAAAAJuCAIAAAChUefEAAAQAElEQVR4Aez9eZck13nmCd7d3CMyEwkgkZnYCIAECBEkQYKkKO47RUJcQYoACBIEV5AEV0mkJKo0KpWmVd1dPd0zUzNnZs6cOfNv9yfo/hh1qs6pOqfUBLFvidy3WNzdrH/XXvebN8zMPdxjyYUM0xNvPPe5z/vea9fdza9ZJCHz1E1Ht4mf3HT0JzcdqXH4JzdtwE9vOvLTQ0d+dujoNPz0xiM5fnLj4Z8cOvzUoZtAo1TepHcCzODIU4caQASxDs48dwqX+XMic0L8h6dUm6o/dfjwQvjxTTc1wOnsEupzOfLUTWCBt8SPDx3pxJQ31aLrxmTAAvOZMu7UCj+J795LL/rkjcSbB4zfP/mCN16OdnPj6yvn265/ZDJQi9w0daqLnlqH//CRpyIOP9V8H9b67g0dB2WI9riH87Wdh6cFb51CV3EZNzuv9F6dtv6XDFlWx0pKr9RvLmacSf1pmnodmNbbWoHDP7rp8A9vOtKJH9105Mfg0JF0Llw/f3rj4Z/eeNNPDsXrxg8P3/Tk4cM/iDjy5OFYhLN76obDP7vhyC+vP/KXB2P86eGbf3zkZur/6PDRH998C3jqllt/eOToD/DffPNTt9323Ztu+v6RI9+56aZvHjz4qV7/iw+85//9P/xfn/sv/3Lu2IkTr7x2/LVjJ44fP3bs2ImTp06cPA1Onjpz6tSZ06fOnqlx8sTp2Dx99syZc+D06bM0T+I8cYoIRwEQmidOnIILMCecPXtexDySkpDrDZ48QlKvNKfFeWwyYeYsoCnVICjHj598/fUTx4+fBDQpSG/qQoGfOsXinOo8TmeHGE6Oj7hu5DZAwU7I6KkrZZ2qX6ZWPD0epPVL5tAVT546daLGybx3YwF64ruC4ZhAmkxOWKscTFuAX5Cb4dKbYsoVBUMD6Mlz7Bjv2DGS2CApndGZNi8f78bO9yFdQPyYO8HoCWLAT1k4hCgVXnvt9ZdeeuWVV147duw4fnR6IcwNjgdASGQyAIKhE9g6QUonpIiMxXAQURgRP6WIwuliei+++PLLL7/66qt89I+LHz0HYg7pkpp5FL0dGQLMrpCysOVm9DREmjNry8IyZ1YYkCI2Tk1ASlIkCwXQm84djiKAoxMZmtV49tnnn3nmuWefff65514Azz//IkBnLAZloZgAgHSCoTshY7Uj8+9EZxHETjOiUXvHVbwCWuureHZ7U7vWV2Bv/lf7CuhKmQSluF4DrRRQHJX88KtGVCGIisQIVeE3VQVUVVblqIo/o5FWlTXK2eFoOBys0zVYXx+srjGWGpXeeuf8YFQOlTa93sWqfOHEifXgv/3Uj/+nf//vH3744SNHjgwGg9FoZCZHVY3HVbtwtIu3lV0Ydp6Sm5+11vFVmadWp2ebZ6r1tkbvnFKXOGOUZpfWTSUV1JMjKYnQk/hsMs05Te+sxrID6YKUZcm7fTg54AAR0AuSM3FRiKIQQWrmBL6HtAK8TICmRAhIPBHETsxj2NTTWXm2SM0ccl0UBS6EOLtI3osZ5MpucL4ddqPsXs0dW4HL8CbYsbnuFdpbgb0V2LkVYKPEjtxWCkBMmd0MVJGzjceTBqzYyGtValXVEim2VK6sXKUgsYjWlVal0UNTsdkfmNI4473TqiqcK4wr1wZmpKphWVW6VPbCcPTbV1974fz5b/zy5//t////9+XvfefI7bdxRTpz9szK6mo9iJJtDVxIHhG3DKnTmT6jq9O/m2K+/ONxWB9hiUhzO3F3Tnk7M8pzZREk5jpcRIk0x2BlwLhR/6IJahoDXBAbkx+UCVVwkDeF56Io7TiPJ19wOBt9Nv/r6+vc90Ikyj2AxHwU/IJcnM3xtw0iEkG7d2sKpTrRuSadYhqXOom3Cbmgrc9Q8AMxJEIz5zTbwAA6dUSZJ4Yc6DMgKTMMqYua8...');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
       color: var(--text);
       padding: 32px 18px;
     }
@@ -744,20 +758,28 @@
       <p class="preview-title">Pré-visualização do cartão</p>
       <div class="card" id="card">
         <div class="card-wm" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="12" y1="2.5" x2="12" y2="21.5"/><line x1="2.5" y1="12" x2="21.5" y2="12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <line x1="12" y1="2.5" x2="12" y2="21.5"></line>
+            <line x1="2.5" y1="12" x2="21.5" y2="12"></line>
+          </svg>
         </div>
+
         <div class="card-top">
           <div class="brand">
             <div class="brand-symbol">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
             <div>
-              <h2>HOSPITAL DE LOS SANTOS</h2>
+              <h2>Hospital de Los Santos</h2>
               <p>Cartão de Saúde</p>
             </div>
           </div>
           <div class="status">Ativo</div>
         </div>
+
         <div class="card-main">
           <div>
             <div class="small-label">Titular</div>
@@ -765,13 +787,18 @@
             <div class="small-label" id="labelDocCard">ID / Passaporte</div>
             <div class="idline" id="outDocumento">—</div>
           </div>
+
           <div class="plan-box">
-            <div class="vip-flag">★ Parceria VIP</div>
+            <div class="vip-flag">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6L22 9.3l-5 4.9 1.2 7.1L12 17.8l-6.2 3.5L7 14.2 2 9.3l7.1-.7L12 2z"/></svg>
+              Parceria VIP
+            </div>
             <div class="plan-label">Plano ativo</div>
-            <div class="plan" id="outPlano">100</div>
-            <div class="plan-meta" id="outMeta">100 revives/mês<br>15% desconto</div>
+            <div class="plan" id="outPlano">—</div>
+            <div class="plan-meta" id="outMeta">—</div>
           </div>
         </div>
+
         <div class="card-bottom">
           <div>
             <div class="small-label">N.º do cartão</div>
@@ -781,7 +808,7 @@
           <div>
             <div class="footer-note">Taxa transporte: 10.000</div>
           </div>
-          <div>
+          <div style="text-align:right;">
             <div id="cardValidadeWrap">
               <div class="small-label">Válido até</div>
               <div class="value" id="outValidade">—</div>
@@ -790,12 +817,25 @@
           </div>
         </div>
       </div>
+
       <div class="rules">
-        <strong>Regras importantes:</strong><br><br>
-        <span style="display:flex; align-items:center; gap:6px; margin-bottom:4px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span>O cartão é pessoal e intransmissível — só pode ser usado pelo titular</span></span><br>
-        <span style="display:flex; align-items:center; gap:6px; margin-bottom:4px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span>O transporte da vítima NÃO está incluído no plano — taxa de 10.000</span></span><br>
-        <span style="display:flex; align-items:center; gap:6px; margin-bottom:4px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span>O Hospital pode confirmar a validade e revives restantes antes do atendimento</span></span><br>
-        <span style="display:flex; align-items:center; gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span>Para revalidar o cartão, contacte o Hospital de Los Santos</span></span>
+        <strong>Regras importantes</strong>
+        <div class="rule-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>O cartão é pessoal e intransmissível — só pode ser usado pelo titular</span>
+        </div>
+        <div class="rule-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>O transporte da vítima não está incluído no plano — taxa de 10.000</span>
+        </div>
+        <div class="rule-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>O Hospital pode confirmar a validade e revives restantes antes do atendimento</span>
+        </div>
+        <div class="rule-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>Para revalidar o cartão, contacte o Hospital de Los Santos</span>
+        </div>
       </div>
     </section>
   </div>
