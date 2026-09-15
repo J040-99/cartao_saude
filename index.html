@@ -1436,7 +1436,7 @@
       wrapper.style.cssText = 'position:fixed; left:-99999px; top:0; width:520px; pointer-events:none;';
       const clone = card.cloneNode(true);
       clone.style.width = '520px';
-      clone.style.height = '330px';
+      clone.style.minHeight = '330px';
       clone.style.border = 'none';
       clone.style.boxShadow = 'none';
       wrapper.appendChild(clone);
@@ -1444,7 +1444,7 @@
       try {
         const dataUrl = await window.domtoimage.toPng(clone, {
           width: 520,
-          height: 330,
+          height: clone.offsetHeight,
           scale: 2,
           backgroundColor: '#0a1624'
         });
