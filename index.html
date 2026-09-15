@@ -850,6 +850,7 @@
     let cartoes = [];
     let revivesLog = [];
     let editingId = null;
+    let appIniciada = false;
     let deleteId = null;
     let reviveCartaoId = null;
 
@@ -868,11 +869,11 @@
       '03': { revives: 100, desconto: 15, preco: '3.400.000', nome: 'Plano 100' },
       '04': { revives: 120, desconto: 20, preco: '3.840.000', nome: 'Plano 120' },
       '05': { revives: 150, desconto: 25, preco: '4.500.000', nome: 'Plano 150' },
-      '06': { parceiro: 'Kuma Customs', descontoKits: '18k/kit', kitsExtras: 'Fulltunes NIII 17M · Limpeza 13k · Reparação 24k', nome: 'Parceria Kuma' },
-      '07': { parceiro: 'BurguerShot', descontoKits: '18k/kit', reviveInterno: '30k', reviveExterno: '40k', nome: 'Parceria BurguerShot' },
-      '08': { parceiro: "Benny's", descontoKits: '15k/kit', eventos: '4M–6M/h', nome: "Parceria Benny's" },
-      '09': { parceiro: 'Los Santos Customs', descontoKits: '18k/kit', eventos: '4M–6M/h', nome: 'Parceria LSC' },
-      '10': { parceiro: 'LSPD', descontoKits: '18k/kit', tratamento: 'Agentes fardados', nome: 'Parceria LSPD' }
+      '06': { parceiro: 'Kuma Customs', descontoKits: '28k/kit', kitsExtras: 'Fulltunes NIII 17M · Limpeza 13k · Reparação 24k', nome: 'Parceria Kuma' },
+      '07': { parceiro: 'BurguerShot', descontoKits: '28k/kit', reviveInterno: '30k', reviveExterno: '40k', nome: 'Parceria BurguerShot' },
+      '08': { parceiro: "Benny's", descontoKits: '28k/kit', eventos: '4M–6M/h', nome: "Parceria Benny's" },
+      '09': { parceiro: 'Los Santos Customs', descontoKits: '28k/kit', eventos: '4M–6M/h', nome: 'Parceria LSC' },
+      '10': { parceiro: 'LSPD', descontoKits: '28k/kit', tratamento: 'Revives a agentes fardados', nome: 'Parceria LSPD' }
     };
 
     // ============================================================
@@ -1009,6 +1010,7 @@
         document.getElementById('outValidade').textContent = formatarData(document.getElementById('validade').value);
         document.getElementById('outMeta').innerHTML = `${p.revives} revives/mês<br>${p.desconto}% desconto`;
       }
+      guardarRascunho();
     }
 
     async function novoCartao() {
@@ -1021,6 +1023,43 @@
       const h = new Date(); document.getElementById('inicio').value = h.toISOString().slice(0,10);
       const f = new Date(h); f.setDate(f.getDate() + 30); document.getElementById('validade').value = f.toISOString().slice(0,10);
       atualizar();
+    }
+
+    // Rascunho automático — mantém os dados do formulário ao fechar a página
+    const DRAFT_KEY = 'hls_rascunho_cartao';
+    function guardarRascunho() {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+          nome: document.getElementById('nome').value,
+          documento: document.getElementById('documento').value,
+          numero: document.getElementById('numero').value,
+          plano: document.getElementById('plano').value,
+          restantes: document.getElementById('restantes').value,
+          inicio: document.getElementById('inicio').value,
+          validade: document.getElementById('validade').value,
+          editingId: editingId
+        }));
+      } catch (e) {}
+    }
+
+    function restaurarRascunho() {
+      let d;
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return false;
+        d = JSON.parse(raw);
+      } catch (e) { return false; }
+      if (!d || typeof d !== 'object' || !d.plano || !planos[d.plano]) return false;
+      editingId = d.editingId || null;
+      document.getElementById('nome').value = d.nome || '';
+      document.getElementById('documento').value = d.documento || '';
+      document.getElementById('numero').value = d.numero || '—';
+      document.getElementById('plano').value = d.plano;
+      document.getElementById('restantes').value = d.restantes ?? 0;
+      document.getElementById('inicio').value = d.inicio || '';
+      document.getElementById('validade').value = d.validade || '';
+      atualizar();
+      return true;
     }
 
     async function obterOuCriarPessoaId(documento) {
@@ -1126,6 +1165,7 @@
         toast('Cartão guardado!');
       }
       await carregarCartoes();
+      guardarRascunho();
     }
 
     async function apagarCartao(id) {
@@ -1164,7 +1204,8 @@
       document.getElementById('nome').value = c.nome;
       document.getElementById('documento').value = c.documento;
       document.getElementById('numero').value = c.numero;
-      document.getElementById('plano').value = c.plano;
+      const planoDb = String(c.plano ?? '').padStart(2, '0');
+      document.getElementById('plano').value = planos[planoDb] ? planoDb : '03';
       document.getElementById('restantes').value = c.revives;
       document.getElementById('inicio').value = c.inicio;
       document.getElementById('validade').value = c.validade;
@@ -1419,27 +1460,30 @@
     // ============================================================
     // INIT
     // ============================================================
+    async function aposSessao() {
+      renderAuth();
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('adminPanel').classList.remove('hidden');
+      if (appIniciada) return;
+      appIniciada = true;
+      if (!restaurarRascunho()) novoCartao();
+      await carregarCartoes();
+    }
+
     (async function init() {
       renderAuth();
       const { data: { session } } = await sb.auth.getSession();
       if (session?.user) {
         currentUser = session.user;
-        renderAuth();
-        document.getElementById('mainApp').classList.remove('hidden');
-        document.getElementById('adminPanel').classList.remove('hidden');
-        novoCartao();
-        await carregarCartoes();
+        await aposSessao();
       }
       sb.auth.onAuthStateChange(async (event, session) => {
         if (session?.user) {
           currentUser = session.user;
-          renderAuth();
-          document.getElementById('mainApp').classList.remove('hidden');
-          document.getElementById('adminPanel').classList.remove('hidden');
-          novoCartao();
-          await carregarCartoes();
+          await aposSessao();
         } else {
           currentUser = null;
+          appIniciada = false;
           renderAuth();
         }
       });
