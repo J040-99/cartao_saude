@@ -857,13 +857,14 @@
     let deleteId = null;
     let reviveCartaoId = null;
 
-    // IDs Discord autorizados a apagar cartões
+    // IDs Discord autorizados a gerir cartões
     const IDS_PERMITIDOS = ['506570029798653993','772462190266548244','515865163539152919','1234435736682364930'];
-    function podeApagar() {
+    function isAuthorized() {
       if (!currentUser) return false;
       const uid = currentUser.id;
+      const metaId = currentUser.user_metadata?.sub || currentUser.user_metadata?.provider_id || '';
       const providerId = currentUser.app_metadata?.provider_id || '';
-      return IDS_PERMITIDOS.includes(uid) || IDS_PERMITIDOS.includes(providerId);
+      return IDS_PERMITIDOS.includes(uid) || IDS_PERMITIDOS.includes(metaId) || IDS_PERMITIDOS.includes(providerId);
     }
 
     const planos = {
@@ -1172,7 +1173,7 @@
     }
 
     async function apagarCartao(id) {
-      if (!podeApagar()) { toast('Sem permissão para apagar.', 'error'); return; }
+      if (!isAuthorized()) { toast('Sem permissão para apagar.', 'error'); return; }
       deleteId = id;
       document.getElementById('modalDelete').classList.add('active');
       document.getElementById('btnConfirmDelete').onclick = async () => {
@@ -1393,9 +1394,9 @@
             <td>${estado}</td>
             <td>
               <div class="admin-actions">
-                <button class="btn-edit" onclick="editarCartao('${c.id}')" title="Editar">
+                ${isAuthorized() ? `<button class="btn-edit" onclick="editarCartao('${c.id}')" title="Editar">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
+              </button>` : ''}
               <button class="btn-revive" onclick="abrirReviveModal('${c.id}')" title="Registar Revive">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
               </button>
@@ -1408,7 +1409,7 @@
               <button class="btn-revive" onclick="verHistoricoRevalidacoes('${c.id}')" title="Histórico Revalidações">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </button>
-              ${podeApagar() ? `<button class="btn-delete" onclick="apagarCartao('${c.id}')" title="Apagar">
+              ${isAuthorized() ? `<button class="btn-delete" onclick="apagarCartao('${c.id}')" title="Apagar">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
               </button>` : ''}
               </div>
