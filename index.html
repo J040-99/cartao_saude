@@ -1663,7 +1663,7 @@
       appIniciada = true;
       if (!restaurarRascunho()) novoCartao();
       await carregarCartoes();
-      if (!localStorage.getItem(TUTORIAL_KEY)) abrirTutorial();
+      if (!localStorage.getItem(TUTORIAL_KEY)) setTimeout(abrirTutorial, 300);
     }
 
     (async function init() {
