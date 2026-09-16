@@ -559,6 +559,58 @@
     .mode-edit { background: rgba(56,189,248,.15); color: #38bdf8; }
     .mode-view { background: rgba(255,255,255,.08); color: #a7c0d6; }
 
+    /* ========== TUTORIAL ========== */
+    .tutorial-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(6px);
+      z-index: 200;
+      place-items: center;
+    }
+    .tutorial-overlay.active { display: grid; }
+    .tutorial-box {
+      background: #0d2135;
+      border: 1px solid rgba(56,189,248,.25);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 440px;
+      width: 90%;
+      text-align: center;
+      position: relative;
+    }
+    .tutorial-box .tut-step {
+      font-size: 11px; font-weight: 700; color: #38bdf8;
+      letter-spacing: .12em; text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .tutorial-box .tut-icon {
+      font-size: 48px; margin-bottom: 16px;
+    }
+    .tutorial-box h3 {
+      margin: 0 0 12px; font-size: 20px; color: #f0f8ff;
+    }
+    .tutorial-box p {
+      margin: 0 0 24px; font-size: 14px; color: #a7c0d6; line-height: 1.6;
+    }
+    .tutorial-box .tut-actions {
+      display: flex; gap: 10px; justify-content: center;
+    }
+    .tutorial-box .tut-skip {
+      position: absolute; top: 14px; right: 18px;
+      background: none; border: 0; color: #5a7a94; font-size: 13px;
+      cursor: pointer; padding: 4px 8px;
+    }
+    .tutorial-box .tut-skip:hover { color: #a7c0d6; }
+    .tutorial-dots {
+      display: flex; gap: 6px; justify-content: center; margin-bottom: 20px;
+    }
+    .tutorial-dots span {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,.15);
+    }
+    .tutorial-dots span.active { background: #38bdf8; }
+
     @media (max-width: 900px) {
       .app { grid-template-columns: 1fr; }
       .preview-wrap { position: static; }
@@ -674,6 +726,22 @@
     </div>
   </div>
 
+  <!-- TUTORIAL -->
+  <div class="tutorial-overlay" id="tutorialOverlay">
+    <div class="tutorial-box">
+      <button class="tut-skip" onclick="tutFechar()">Saltar ⊘</button>
+      <div class="tutorial-dots" id="tutDots"></div>
+      <div class="tut-icon" id="tutIcon"></div>
+      <div class="tut-step" id="tutStep"></div>
+      <h3 id="tutTitle"></h3>
+      <p id="tutText"></p>
+      <div class="tut-actions">
+        <button class="secondary" id="tutPrev" onclick="tutVoltar()">← Anterior</button>
+        <button class="primary" id="tutNext" onclick="tutAvancar()">Próximo →</button>
+      </div>
+    </div>
+  </div>
+
   <!-- AUTH BAR -->
   <div class="auth-bar" id="authBar">
     <div id="authArea">
@@ -748,7 +816,6 @@
 
       <div class="actions">
         <button id="btnGuardar" class="primary" onclick="guardarCartao()">Guardar na Base de Dados</button>
-        <button class="secondary" onclick="window.print()">Imprimir / PDF</button>
         <button class="success" onclick="exportarPNG()">Exportar PNG</button>
         <button id="btnVoltar" class="secondary" onclick="novoCartao()" style="display:none;">← Novo Cartão</button>
       </div>
@@ -1515,6 +1582,45 @@
     }
 
     // ============================================================
+    // TUTORIAL
+    // ============================================================
+    const TUTORIAL_KEY = 'hls_tutorial_visto';
+    const tutSteps = [
+      { icon:'📋', step:'Passo 1 de 5', title:'Preencher dados', text:'Preenche o nome do titular, ID/Passaporte e seleciona o plano de saúde.' },
+      { icon:'🔢', step:'Passo 2 de 5', title:'Gerar número', text:'Clica em "Gerar" para criar automaticamente o número único do cartão.' },
+      { icon:'💾', step:'Passo 3 de 5', title:'Guardar', text:'Clica em "Guardar na Base de Dados" para registar o cartão no Supabase.' },
+      { icon:'📤', step:'Passo 4 de 5', title:'Exportar PNG', text:'Clica em "Exportar PNG" para descarregar o cartão como imagem.' },
+      { icon:'📊', step:'Passo 5 de 5', title:'Gestão de Cartões', text:'Na secção "Gestão de Cartões" podes ver, editar, registar revives e apagar cartões existentes.' },
+    ];
+    let tutIdx = 0;
+    function abrirTutorial() {
+      tutIdx = 0;
+      renderTut();
+      document.getElementById('tutorialOverlay').classList.add('active');
+    }
+    function renderTut() {
+      const s = tutSteps[tutIdx];
+      document.getElementById('tutIcon').textContent = s.icon;
+      document.getElementById('tutStep').textContent = s.step;
+      document.getElementById('tutTitle').textContent = s.title;
+      document.getElementById('tutText').textContent = s.text;
+      document.getElementById('tutPrev').style.display = tutIdx === 0 ? 'none' : '';
+      document.getElementById('tutNext').textContent = tutIdx === tutSteps.length - 1 ? 'Começar ✓' : 'Próximo →';
+      document.getElementById('tutDots').innerHTML = tutSteps.map((_, i) => `<span class="${i === tutIdx ? 'active' : ''}"></span>`).join('');
+    }
+    function tutAvancar() {
+      if (tutIdx < tutSteps.length - 1) { tutIdx++; renderTut(); }
+      else tutFechar();
+    }
+    function tutVoltar() {
+      if (tutIdx > 0) { tutIdx--; renderTut(); }
+    }
+    function tutFechar() {
+      document.getElementById('tutorialOverlay').classList.remove('active');
+      localStorage.setItem(TUTORIAL_KEY, '1');
+    }
+
+    // ============================================================
     // INIT
     // ============================================================
     async function aposSessao() {
@@ -1525,6 +1631,7 @@
       appIniciada = true;
       if (!restaurarRascunho()) novoCartao();
       await carregarCartoes();
+      if (!localStorage.getItem(TUTORIAL_KEY)) abrirTutorial();
     }
 
     (async function init() {
