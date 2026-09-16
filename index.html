@@ -747,9 +747,10 @@
       </div>
 
       <div class="actions">
-        <button class="primary" onclick="guardarCartao()">Guardar na Base de Dados</button>
+        <button id="btnGuardar" class="primary" onclick="guardarCartao()">Guardar na Base de Dados</button>
         <button class="secondary" onclick="window.print()">Imprimir / PDF</button>
         <button class="success" onclick="exportarPNG()">Exportar PNG</button>
+        <button id="btnVoltar" class="secondary" onclick="novoCartao()" style="display:none;">← Novo Cartão</button>
       </div>
     </section>
 
@@ -1246,7 +1247,8 @@
       if (mode === 'create') { indicator.textContent = 'Novo Cartão'; indicator.className = 'mode-badge mode-create'; }
       else if (mode === 'edit') { indicator.textContent = 'A Editar'; indicator.className = 'mode-badge mode-edit'; }
       else { indicator.textContent = 'A Visualizar'; indicator.className = 'mode-badge mode-view'; }
-      document.querySelector('.actions').style.display = disabled ? 'none' : '';
+      document.getElementById('btnGuardar').style.display = disabled ? 'none' : '';
+      document.getElementById('btnVoltar').style.display = disabled ? '' : 'none';
     }
 
     function verCartao(id) {
