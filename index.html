@@ -549,6 +549,16 @@
 
     .hidden { display: none !important; }
 
+    .mode-badge {
+      display: inline-block;
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; padding: 4px 10px; border-radius: 999px;
+      vertical-align: middle;
+    }
+    .mode-create { background: rgba(34,197,94,.15); color: #4ade80; }
+    .mode-edit { background: rgba(56,189,248,.15); color: #38bdf8; }
+    .mode-view { background: rgba(255,255,255,.08); color: #a7c0d6; }
+
     @media (max-width: 900px) {
       .app { grid-template-columns: 1fr; }
       .preview-wrap { position: static; }
@@ -679,7 +689,7 @@
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </div>
         <div>
-          <h1>Gerador de Cartões de Saúde</h1>
+          <h1>Gerador de Cartões de Saúde <span id="formModeIndicator" class="mode-badge mode-create">Novo Cartão</span></h1>
           <p class="subtitle">Hospital de Los Santos — emissão de cartões dos planos de saúde.</p>
         </div>
       </div>
@@ -699,7 +709,7 @@
           <label>N.º do cartão</label>
           <div style="display:flex; gap:8px;">
             <input id="numero" type="text" readonly style="flex:1;" />
-            <button type="button" class="primary" onclick="gerarNumero()" style="padding:10px 14px; font-size:12px; white-space:nowrap;">Gerar</button>
+            <button type="button" id="gerarBtn" class="primary" onclick="gerarNumero()" style="padding:10px 14px; font-size:12px; white-space:nowrap;">Gerar</button>
           </div>
           <div class="field-help"><span class="icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><span>Número único do cartão (gerado automaticamente)</span></div>
         </div>
@@ -1019,6 +1029,7 @@
 
     async function novoCartao() {
       editingId = null;
+      setFormMode('create');
       document.getElementById('nome').value = '';
       document.getElementById('documento').value = '';
       document.getElementById('numero').value = '—';
@@ -1205,6 +1216,7 @@
       const c = cartoes.find(x => x.id === id);
       if (!c) return;
       editingId = id;
+      setFormMode('edit');
       document.getElementById('nome').value = c.nome;
       document.getElementById('documento').value = c.documento;
       document.getElementById('numero').value = c.numero;
@@ -1220,6 +1232,40 @@
     }
 
     let revalidacoesLog = [];
+    let formMode = 'create';
+
+    function setFormMode(mode) {
+      formMode = mode;
+      const disabled = mode === 'view';
+      ['nome','documento','plano','restantes','inicio','validade'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = disabled;
+      });
+      document.getElementById('gerarBtn').style.display = disabled ? 'none' : '';
+      const indicator = document.getElementById('formModeIndicator');
+      if (mode === 'create') { indicator.textContent = 'Novo Cartão'; indicator.className = 'mode-badge mode-create'; }
+      else if (mode === 'edit') { indicator.textContent = 'A Editar'; indicator.className = 'mode-badge mode-edit'; }
+      else { indicator.textContent = 'A Visualizar'; indicator.className = 'mode-badge mode-view'; }
+      document.querySelector('.actions').style.display = disabled ? 'none' : '';
+    }
+
+    function verCartao(id) {
+      const c = cartoes.find(x => x.id === id);
+      if (!c) return;
+      editingId = null;
+      setFormMode('view');
+      document.getElementById('nome').value = c.nome;
+      document.getElementById('documento').value = c.documento;
+      document.getElementById('numero').value = c.numero;
+      const planoDb = String(c.plano ?? '').padStart(2, '0');
+      document.getElementById('plano').value = planos[planoDb] ? planoDb : '03';
+      document.getElementById('restantes').value = c.revives;
+      document.getElementById('inicio').value = c.inicio;
+      document.getElementById('validade').value = c.validade;
+      atualizar();
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
+    }
 
     async function carregarRevalidacoes() {
       const { data, error } = await sb.from('revalidacoes').select('*').order('created_at', { ascending: false });
@@ -1378,7 +1424,7 @@
           const revivesUsados = c.revives_usados || 0;
           const totalRevives = revivesUsados + (c.revives || 0);
 
-          return `<tr>
+          return `<tr style="cursor:pointer" onclick="verCartao('${c.id}')">
             <td>
               <strong>${c.nome}</strong>
               <div style="font-size:10px;color:#5a7a94;margin-top:2px;">por ${criador}</div>
