@@ -1214,9 +1214,9 @@
       document.getElementById('inicio').value = c.inicio;
       document.getElementById('validade').value = c.validade;
       atualizar();
-      document.getElementById('adminPanel').classList.add('hidden');
       document.getElementById('mainApp').classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('adminPanel').classList.remove('hidden');
+      document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
     }
 
     let revalidacoesLog = [];
