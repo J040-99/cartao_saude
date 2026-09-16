@@ -1453,6 +1453,8 @@
       if (brand) brand.style.cssText = 'display:flex; gap:10px; align-items:center; min-width:0; flex:1;';
       const status = clone.querySelector('.status');
       if (status) status.style.cssText += '; flex-shrink:0;';
+      const h2 = clone.querySelector('.brand h2');
+      if (h2) h2.style.whiteSpace = 'nowrap';
       wrapper.appendChild(clone);
       document.body.appendChild(wrapper);
       try {
