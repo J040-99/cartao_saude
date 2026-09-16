@@ -1446,6 +1446,13 @@
       clone.style.minHeight = '0';
       clone.style.border = 'none';
       clone.style.boxShadow = 'none';
+      // Forçar estilos que dom-to-image ignora
+      const bt = clone.querySelector('.brand-text');
+      if (bt) bt.style.cssText = 'display:flex; flex-direction:column; min-width:0;';
+      const brand = clone.querySelector('.brand');
+      if (brand) brand.style.cssText = 'display:flex; gap:10px; align-items:center; min-width:0; flex:1;';
+      const status = clone.querySelector('.status');
+      if (status) status.style.cssText += '; flex-shrink:0;';
       wrapper.appendChild(clone);
       document.body.appendChild(wrapper);
       try {
