@@ -563,53 +563,53 @@
     .tutorial-overlay {
       display: none;
       position: fixed; inset: 0;
-      background: rgba(0,0,0,.7);
-      backdrop-filter: blur(6px);
       z-index: 200;
-      place-items: center;
     }
-    .tutorial-overlay.active { display: grid; }
-    .tutorial-box {
+    .tutorial-overlay.active { display: block; }
+    .tutorial-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.65);
+    }
+    .tutorial-highlight {
+      position: fixed;
+      border: 2px solid #38bdf8;
+      border-radius: 12px;
+      box-shadow: 0 0 0 4000px rgba(0,0,0,.55), 0 0 20px rgba(56,189,248,.3);
+      z-index: 201;
+      pointer-events: none;
+      transition: all .35s ease;
+    }
+    .tutorial-tooltip {
+      position: fixed;
+      z-index: 202;
       background: #0d2135;
-      border: 1px solid rgba(56,189,248,.25);
-      border-radius: 20px;
-      padding: 32px;
-      max-width: 440px;
-      width: 90%;
-      text-align: center;
-      position: relative;
+      border: 1px solid rgba(56,189,248,.3);
+      border-radius: 16px;
+      padding: 20px 24px;
+      max-width: 340px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.5);
+      transition: all .35s ease;
     }
-    .tutorial-box .tut-step {
-      font-size: 11px; font-weight: 700; color: #38bdf8;
+    .tutorial-tooltip .tut-step {
+      font-size: 10px; font-weight: 700; color: #38bdf8;
       letter-spacing: .12em; text-transform: uppercase;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
-    .tutorial-box .tut-icon {
-      font-size: 48px; margin-bottom: 16px;
+    .tutorial-tooltip h3 {
+      margin: 0 0 8px; font-size: 16px; color: #f0f8ff;
     }
-    .tutorial-box h3 {
-      margin: 0 0 12px; font-size: 20px; color: #f0f8ff;
+    .tutorial-tooltip p {
+      margin: 0 0 16px; font-size: 13px; color: #a7c0d6; line-height: 1.55;
     }
-    .tutorial-box p {
-      margin: 0 0 24px; font-size: 14px; color: #a7c0d6; line-height: 1.6;
+    .tutorial-tooltip .tut-actions {
+      display: flex; gap: 8px; align-items: center;
     }
-    .tutorial-box .tut-actions {
-      display: flex; gap: 10px; justify-content: center;
-    }
-    .tutorial-box .tut-skip {
-      position: absolute; top: 14px; right: 18px;
-      background: none; border: 0; color: #5a7a94; font-size: 13px;
+    .tutorial-tooltip .tut-skip {
+      margin-left: auto;
+      background: none; border: 0; color: #5a7a94; font-size: 12px;
       cursor: pointer; padding: 4px 8px;
     }
-    .tutorial-box .tut-skip:hover { color: #a7c0d6; }
-    .tutorial-dots {
-      display: flex; gap: 6px; justify-content: center; margin-bottom: 20px;
-    }
-    .tutorial-dots span {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: rgba(255,255,255,.15);
-    }
-    .tutorial-dots span.active { background: #38bdf8; }
+    .tutorial-tooltip .tut-skip:hover { color: #a7c0d6; }
 
     @media (max-width: 900px) {
       .app { grid-template-columns: 1fr; }
@@ -728,16 +728,16 @@
 
   <!-- TUTORIAL -->
   <div class="tutorial-overlay" id="tutorialOverlay">
-    <div class="tutorial-box">
-      <button class="tut-skip" onclick="tutFechar()">Saltar ⊘</button>
-      <div class="tutorial-dots" id="tutDots"></div>
-      <div class="tut-icon" id="tutIcon"></div>
+    <div class="tutorial-backdrop" onclick="tutFechar()"></div>
+    <div class="tutorial-highlight" id="tutHighlight"></div>
+    <div class="tutorial-tooltip" id="tutTooltip">
       <div class="tut-step" id="tutStep"></div>
       <h3 id="tutTitle"></h3>
       <p id="tutText"></p>
       <div class="tut-actions">
-        <button class="secondary" id="tutPrev" onclick="tutVoltar()">← Anterior</button>
-        <button class="primary" id="tutNext" onclick="tutAvancar()">Próximo →</button>
+        <button class="secondary" style="padding:8px 14px;font-size:12px;" id="tutPrev" onclick="tutVoltar()">← Anterior</button>
+        <button class="primary" style="padding:8px 14px;font-size:12px;" id="tutNext" onclick="tutAvancar()">Próximo →</button>
+        <button class="tut-skip" onclick="tutFechar()">Saltar</button>
       </div>
     </div>
   </div>
@@ -816,7 +816,7 @@
 
       <div class="actions">
         <button id="btnGuardar" class="primary" onclick="guardarCartao()">Guardar na Base de Dados</button>
-        <button class="success" onclick="exportarPNG()">Exportar PNG</button>
+        <button id="exportarPNG" class="success" onclick="exportarPNG()">Exportar PNG</button>
         <button id="btnVoltar" class="secondary" onclick="novoCartao()" style="display:none;">← Novo Cartão</button>
       </div>
     </section>
@@ -1582,32 +1582,64 @@
     }
 
     // ============================================================
-    // TUTORIAL
+    // TUTORIAL — spotlight que aponta para cada elemento
     // ============================================================
     const TUTORIAL_KEY = 'hls_tutorial_visto';
     const tutSteps = [
-      { icon:'📋', step:'Passo 1 de 5', title:'Preencher dados', text:'Preenche o nome do titular, ID/Passaporte e seleciona o plano de saúde.' },
-      { icon:'🔢', step:'Passo 2 de 5', title:'Gerar número', text:'Clica em "Gerar" para criar automaticamente o número único do cartão.' },
-      { icon:'💾', step:'Passo 3 de 5', title:'Guardar', text:'Clica em "Guardar na Base de Dados" para registar o cartão no Supabase.' },
-      { icon:'📤', step:'Passo 4 de 5', title:'Exportar PNG', text:'Clica em "Exportar PNG" para descarregar o cartão como imagem.' },
-      { icon:'📊', step:'Passo 5 de 5', title:'Gestão de Cartões', text:'Na secção "Gestão de Cartões" podes ver, editar, registar revives e apagar cartões existentes.' },
+      { selector: '#nome', title: 'Nome do titular', text: 'Escreve aqui o nome completo da pessoa que vai usar o cartão de saúde.' },
+      { selector: '#labelDocForm', title: 'ID / Passaporte', text: 'Documento de identificação do titular. Nas parcerias este campo passa a "Código".' },
+      { selector: '#numero', title: 'Número do cartão', text: 'Número único gerado automaticamente. Clica em "Gerar" para criar um novo.' },
+      { selector: '#plano', title: 'Plano de saúde', text: 'Seleciona o plano: dos 50 aos 150 revives, ou um dos planos de parceria (06–10).' },
+      { selector: '#restantes', title: 'Revives restantes', text: 'Quantidade de revives disponíveis no cartão. Atualiza automaticamente ao guardar.' },
+      { selector: '#btnGuardar', title: 'Guardar', text: 'Guarda o cartão na base de dados Supabase. Torna-se visível na gestão de cartões.' },
+      { selector: '#exportarPNG', title: 'Exportar PNG', text: 'Descarrega o cartão como imagem PNG com as mesmas dimensões da prévia.' },
+      { selector: '#card', title: 'Pré-visualização', text: 'O cartão atualiza em tempo real à medida que preenches o formulário.' },
+      { selector: '#adminPanel', title: 'Gestão de Cartões', text: 'Painel com todos os cartões guardados. Clica numa linha para ver, ou nos botões para editar, registar revives e apagar.' },
     ];
     let tutIdx = 0;
+
     function abrirTutorial() {
       tutIdx = 0;
-      renderTut();
       document.getElementById('tutorialOverlay').classList.add('active');
+      renderTut();
     }
+
     function renderTut() {
       const s = tutSteps[tutIdx];
-      document.getElementById('tutIcon').textContent = s.icon;
-      document.getElementById('tutStep').textContent = s.step;
-      document.getElementById('tutTitle').textContent = s.title;
-      document.getElementById('tutText').textContent = s.text;
-      document.getElementById('tutPrev').style.display = tutIdx === 0 ? 'none' : '';
-      document.getElementById('tutNext').textContent = tutIdx === tutSteps.length - 1 ? 'Começar ✓' : 'Próximo →';
-      document.getElementById('tutDots').innerHTML = tutSteps.map((_, i) => `<span class="${i === tutIdx ? 'active' : ''}"></span>`).join('');
+      const el = document.querySelector(s.selector);
+      if (!el) { tutFechar(); return; }
+
+      // Scroll ao elemento
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      setTimeout(() => {
+        const r = el.getBoundingClientRect();
+        const pad = 8;
+        const hl = document.getElementById('tutHighlight');
+        hl.style.top = (r.top - pad) + 'px';
+        hl.style.left = (r.left - pad) + 'px';
+        hl.style.width = (r.width + pad * 2) + 'px';
+        hl.style.height = (r.height + pad * 2) + 'px';
+
+        document.getElementById('tutStep').textContent = `Passo ${tutIdx + 1} de ${tutSteps.length}`;
+        document.getElementById('tutTitle').textContent = s.title;
+        document.getElementById('tutText').textContent = s.text;
+        document.getElementById('tutPrev').style.display = tutIdx === 0 ? 'none' : '';
+        document.getElementById('tutNext').textContent = tutIdx === tutSteps.length - 1 ? 'Começar ✓' : 'Próximo →';
+
+        // Posicionar tooltip: abaixo do elemento, ou acima se não couber
+        const tt = document.getElementById('tutTooltip');
+        const ttH = 180;
+        let top = r.bottom + 14;
+        if (top + ttH > window.innerHeight) top = r.top - ttH - 14;
+        let left = r.left;
+        if (left + 340 > window.innerWidth) left = window.innerWidth - 360;
+        if (left < 10) left = 10;
+        tt.style.top = top + 'px';
+        tt.style.left = left + 'px';
+      }, 380);
     }
+
     function tutAvancar() {
       if (tutIdx < tutSteps.length - 1) { tutIdx++; renderTut(); }
       else tutFechar();
