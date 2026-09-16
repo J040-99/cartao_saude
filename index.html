@@ -1248,7 +1248,7 @@
       else if (mode === 'edit') { indicator.textContent = 'A Editar'; indicator.className = 'mode-badge mode-edit'; }
       else { indicator.textContent = 'A Visualizar'; indicator.className = 'mode-badge mode-view'; }
       document.getElementById('btnGuardar').style.display = disabled ? 'none' : '';
-      document.getElementById('btnVoltar').style.display = disabled ? '' : 'none';
+      document.getElementById('btnVoltar').style.display = (mode === 'create') ? 'none' : '';
     }
 
     function verCartao(id) {
