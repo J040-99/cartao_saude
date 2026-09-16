@@ -263,7 +263,7 @@
       flex-shrink: 0;
     }
     .brand-text { display:flex; flex-direction:column; min-width:0; }
-    .brand h2 { margin:0; font-size:14px; letter-spacing:.03em; }
+    .brand h2 { margin:0; font-size:13px; letter-spacing:.02em; }
     .brand p { margin:2px 0 0; font-size:9px; letter-spacing:.22em; color:#7dd3fc; }
 
     .status {
@@ -1438,30 +1438,18 @@
       const rect = card.getBoundingClientRect();
       const w = Math.round(rect.width);
       const h = Math.round(rect.height);
-      const wrapper = document.createElement('div');
-      wrapper.style.cssText = 'position:fixed; left:-99999px; top:0; pointer-events:none;';
-      const clone = card.cloneNode(true);
-      clone.style.width = w + 'px';
-      clone.style.height = h + 'px';
-      clone.style.minHeight = '0';
-      clone.style.border = 'none';
-      clone.style.boxShadow = 'none';
-      // Forçar estilos que dom-to-image ignora
-      const bt = clone.querySelector('.brand-text');
-      if (bt) bt.style.cssText = 'display:flex; flex-direction:column; min-width:0;';
-      const brand = clone.querySelector('.brand');
-      if (brand) brand.style.cssText = 'display:flex; gap:10px; align-items:center; min-width:0; flex:1;';
-      const status = clone.querySelector('.status');
-      if (status) status.style.cssText += '; flex-shrink:0;';
-      const h2 = clone.querySelector('.brand h2');
-      if (h2) h2.style.whiteSpace = 'nowrap';
-      wrapper.appendChild(clone);
-      document.body.appendChild(wrapper);
+      // Mover card para container limpo, renderizar, repor
+      const next = card.nextElementSibling;
+      const parent = card.parentElement;
+      const container = document.createElement('div');
+      container.style.cssText = 'position:fixed; left:0; top:0; width:' + w + 'px; z-index:-1; pointer-events:none;';
+      container.appendChild(card);
+      document.body.appendChild(container);
       try {
-        const dataUrl = await window.domtoimage.toPng(clone, {
+        const dataUrl = await window.domtoimage.toPng(card, {
           width: w,
           height: h,
-          style: { width: w + 'px', height: h + 'px', minHeight: '0' },
+          style: { width: w + 'px', height: h + 'px', minHeight: '0', border: 'none', boxShadow: 'none' },
           scale: 2,
           backgroundColor: '#0a1624'
         });
@@ -1473,7 +1461,8 @@
       } catch (e) {
         toast('Erro ao exportar: ' + e.message, 'error');
       } finally {
-        wrapper.remove();
+        container.remove();
+        parent.insertBefore(card, next);
       }
     }
 
