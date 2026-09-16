@@ -1584,7 +1584,7 @@
     // ============================================================
     // TUTORIAL — spotlight que aponta para cada elemento
     // ============================================================
-    const TUTORIAL_KEY = 'hls_tutorial_visto';
+    const TUTORIAL_KEY = 'hls_tutorial_spotlight_v2';
     const tutSteps = [
       { selector: '#nome', title: 'Nome do titular', text: 'Escreve aqui o nome completo da pessoa que vai usar o cartão de saúde.' },
       { selector: '#labelDocForm', title: 'ID / Passaporte', text: 'Documento de identificação do titular. Nas parcerias este campo passa a "Código".' },
@@ -1663,7 +1663,7 @@
       appIniciada = true;
       if (!restaurarRascunho()) novoCartao();
       await carregarCartoes();
-      if (!localStorage.getItem(TUTORIAL_KEY)) setTimeout(abrirTutorial, 300);
+      if (!localStorage.getItem(TUTORIAL_KEY)) setTimeout(abrirTutorial, 800);
     }
 
     (async function init() {
